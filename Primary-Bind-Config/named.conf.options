@@ -1,0 +1,195 @@
+// Named Options - Authoritative Server Configuration
+// Location: /etc/named.conf.options
+// Tuned for ~3,000 zones with 6 secondaries + 5 third-party primaries
+
+options {
+        // Listen on all interfaces
+        listen-on port 53 { any; };
+        listen-on-v6 port 53 { any; };
+
+        // Working directories
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        memstatistics-file "/var/named/data/named_mem_stats.txt";
+        secroots-file   "/var/named/data/named.secroots";
+        recursing-file  "/var/named/data/named.recursing";
+        pid-file        "/var/run/named/named.pid";
+        session-keyfile "/var/run/named/session.key";
+        managed-keys-directory "/var/named/dynamic";
+
+        // Zone file format
+        masterfile-format text;
+
+        // ============================================
+        // AUTHORITATIVE SERVER SETTINGS - NO RECURSION
+        // ============================================
+        recursion no;
+        allow-recursion { none; };
+
+        // ============================================
+        // QUERY ACCESS
+        // ============================================
+        // Allow queries from nameservers, netbox/webservers, and third-party-dns
+        allow-query { sgn-ns; netbox; third-party-dns; };
+
+        // ============================================
+        // ZONE TRANSFER RESTRICTIONS (TSIG Required)
+        // ============================================
+        // Outbound transfers to our secondaries - require TSIG authentication
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                localhost;
+        };
+
+        // ============================================
+        // NOTIFY CONFIGURATION
+        // ============================================
+        // Notify our secondary servers on zone changes
+        notify yes;
+
+        // Send notifications to all secondary nameservers
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+        };
+
+        // Accept notify messages from third-party primaries (we are secondary for their zones)
+        allow-notify { third-party-dns; localhost; };
+
+        // ============================================
+        // TRANSFER LIMITS - TUNED FOR 3K ZONES
+        // ============================================
+        // Inbound: pulling zones from third-party primaries
+        transfers-in 50;
+
+        // Outbound: pushing zones to our 6 secondaries
+        transfers-out 100;
+
+        // Per-server default
+        transfers-per-ns 10;
+
+        // ============================================
+        // HIGH ZONE COUNT TUNING
+        // ============================================
+        // Notify messages per second
+        notify-rate 50;
+
+        // SOA queries per second for zone refresh checks
+        serial-query-rate 100;
+
+        // Skip SOA validation at startup - faster restart with 3K zones
+        loading-soa-check no;
+
+        // ============================================
+        // LOGGING CONTROL
+        // ============================================
+        // Query logging disabled - enable temporarily with: rndc querylog on
+        querylog no;
+
+        // ============================================
+        // SECURITY HARDENING
+        // ============================================
+        // Hide BIND version from queries
+        version "not disclosed";
+        hostname none;
+
+        // Conform to RFC1035 for NXDOMAIN
+        auth-nxdomain no;
+
+        // Minimize responses for authoritative server
+        minimal-responses yes;
+
+        // Disable empty zones (not needed for authoritative)
+        empty-zones-enable no;
+
+        // DNSSEC settings
+        dnssec-validation auto;
+
+        // ============================================
+        // RATE LIMITING (DDoS Protection)
+        // ============================================
+        rate-limit {
+                responses-per-second 15;
+                nxdomains-per-second 15;
+                referrals-per-second 15;
+                errors-per-second 15;
+                all-per-second 100;
+                window 15;
+                log-only no;
+                slip 2;
+                ipv4-prefix-length 24;
+                ipv6-prefix-length 56;
+
+                // Exempt trusted networks from rate limiting
+                exempt-clients { sgn-ns; netbox; localhost; };
+        };
+
+        // ============================================
+        // UPDATE POLICY
+        // ============================================
+        // Dynamic updates controlled per-zone, not globally
+        allow-update { none; };
+
+        // ============================================
+        // CONNECTION LIMITS - TUNED FOR 3K ZONES
+        // ============================================
+        zone-statistics full;
+
+        // TCP connection limits (increased for zone transfers)
+        tcp-clients 300;
+        tcp-listen-queue 15;
+
+        // Recursive client limits (recursion is off)
+        recursive-clients 0;
+
+        // Query source restrictions
+        query-source address * port *;
+
+        // Include crypto policy
+        include "/etc/crypto-policies/back-ends/bind.config";
+};
+
+// ============================================
+// OUR SECONDARY SERVERS - TSIG KEY ASSOCIATIONS
+// ============================================
+// We are PRIMARY for these - they pull zones from us
+
+server 9.12.46.4 {
+        keys { "ns-9-12-46-4"; };
+        transfer-format many-answers;
+};
+
+server 9.12.46.5 {
+        keys { "ns-9-12-46-5"; };
+        transfer-format many-answers;
+};
+
+server 9.11.227.25 {
+        keys { "ns-9-11-227-25"; };
+        transfer-format many-answers;
+};
+
+server 9.11.227.26 {
+        keys { "ns-9-11-227-26"; };
+        transfer-format many-answers;
+};
+
+server 9.3.1.200 {
+        keys { "ns-9-3-1-200"; };
+        transfer-format many-answers;
+};
+
+server 9.5.175.8 {
+        keys { "ns-9-5-175-8"; };
+        transfer-format many-answers;
+};

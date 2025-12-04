@@ -1,0 +1,83 @@
+// Third-Party Secondary Zone Definitions
+// Location: /etc/named.conf.third-party-zones
+// Include this in named.conf
+//
+// These are zones where WE are the SECONDARY, pulling from third-party primaries.
+// TSIG authentication uses the shared "third-party-dns" key.
+
+// ============================================
+// TEMPLATE - Single Primary
+// ============================================
+// Use when zone is served by one third-party primary
+
+zone "example-delegated.com" {
+        type secondary;
+        file "/var/named/secondaries/example-delegated.com.db";
+        primaries { 10.0.0.1 key "third-party-dns"; };
+        allow-notify { 10.0.0.1; };
+        allow-transfer { none; };  // Don't allow others to pull from us
+        // Uncomment to also serve to your secondaries:
+        // allow-transfer { key "ns-9-12-46-4"; key "ns-9-12-46-5"; ... };
+};
+
+// ============================================
+// TEMPLATE - Multiple Primaries (redundancy)
+// ============================================
+// Use when zone is served by multiple third-party primaries
+
+zone "example-delegated-ha.com" {
+        type secondary;
+        file "/var/named/secondaries/example-delegated-ha.com.db";
+        primaries {
+                10.0.0.1 key "third-party-dns";
+                10.0.0.2 key "third-party-dns";
+        };
+        allow-notify { 10.0.0.1; 10.0.0.2; };
+        allow-transfer { none; };
+};
+
+// ============================================
+// TEMPLATE - Re-serve to Your Secondaries
+// ============================================
+// Use when you need to propagate third-party zones to your own secondaries
+
+zone "example-cascade.com" {
+        type secondary;
+        file "/var/named/secondaries/example-cascade.com.db";
+        primaries { 10.0.0.1 key "third-party-dns"; };
+        allow-notify { 10.0.0.1; };
+        
+        // Allow your secondaries to pull this zone from you
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+        };
+        
+        // Notify your secondaries when zone updates
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+        };
+};
+
+// ============================================
+// ACTUAL ZONE DEFINITIONS
+// ============================================
+// Add your third-party delegated zones below:
+
+// zone "delegated-zone-1.com" {
+//         type secondary;
+//         file "/var/named/secondaries/delegated-zone-1.com.db";
+//         primaries { 10.0.0.1 key "third-party-dns"; };
+//         allow-notify { 10.0.0.1; };
+//         allow-transfer { none; };
+// };

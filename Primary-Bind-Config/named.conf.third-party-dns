@@ -1,0 +1,56 @@
+// Third-Party DNS Configuration
+// Location: /etc/named.conf.third-party-dns
+//
+// These are external primaries from which we receive zone updates (we are secondary).
+// All 5 servers share the same TSIG key for authentication.
+//
+// TSIG Key: "third-party-dns" (defined in named.conf.keys)
+// Distribute the key to all third-party primaries for authenticated transfers.
+
+// ============================================
+// THIRD-PARTY DNS ACL
+// ============================================
+// External primaries we pull delegated zones from
+acl "third-party-dns" {
+        10.0.0.1;               // Third-party primary 1 - UPDATE WITH REAL IP
+        10.0.0.2;               // Third-party primary 2 - UPDATE WITH REAL IP
+        10.0.0.3;               // Third-party primary 3 - UPDATE WITH REAL IP
+        10.0.0.4;               // Third-party primary 4 - UPDATE WITH REAL IP
+        10.0.0.5;               // Third-party primary 5 - UPDATE WITH REAL IP
+};
+
+// ============================================
+// SERVER STATEMENTS - SHARED TSIG KEY
+// ============================================
+// All third-party primaries use the same key for zone transfers
+// Transfer limit set to 5 per third-party server
+
+server 10.0.0.1 {
+        keys { "third-party-dns"; };
+        transfer-format many-answers;
+        transfers 5;
+};
+
+server 10.0.0.2 {
+        keys { "third-party-dns"; };
+        transfer-format many-answers;
+        transfers 5;
+};
+
+server 10.0.0.3 {
+        keys { "third-party-dns"; };
+        transfer-format many-answers;
+        transfers 5;
+};
+
+server 10.0.0.4 {
+        keys { "third-party-dns"; };
+        transfer-format many-answers;
+        transfers 5;
+};
+
+server 10.0.0.5 {
+        keys { "third-party-dns"; };
+        transfer-format many-answers;
+        transfers 5;
+};

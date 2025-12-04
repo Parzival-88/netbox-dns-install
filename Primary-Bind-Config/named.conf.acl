@@ -1,0 +1,53 @@
+// Access Control Lists
+// Location: /etc/named.conf.acl
+// Note: ACL definitions must come before they are referenced in options
+
+// ============================================
+// SECONDARY NAMESERVERS
+// ============================================
+// Allowed for zone transfers and notify
+acl "sgn-ns" {
+        9.12.46.4;
+        9.12.46.5;
+        9.11.227.25;
+        9.11.227.26;
+        9.3.1.200;
+        9.5.175.8;
+};
+
+// ============================================
+// NETBOX / WEBSERVERS
+// ============================================
+// Allowed for dynamic updates and queries
+// Uncomment the current server
+acl "netbox" {
+        // Localhost leave uncommented
+        127.0.0.1;
+        // netbox-test.sgn.ibm.com
+        //9.12.46.7;
+        // netbox-dev.sgn.ibm.com
+        9.12.46.8;
+        // netbox.sgn.ibm.com
+        //9.12.46.13;
+};
+
+// ============================================
+// INTERNAL NETWORKS
+// ============================================
+// Useful for restricting queries to internal only
+acl "internal-networks" {
+        127.0.0.0/8;            // Loopback
+        10.0.0.0/8;             // RFC1918
+        172.16.0.0/12;          // RFC1918
+        192.168.0.0/16;         // RFC1918
+        9.0.0.0/8;              // IBM internal
+};
+
+// ============================================
+// MANAGEMENT HOSTS
+// ============================================
+// For RNDC and statistics access
+acl "management" {
+        127.0.0.1;
+        ::1;
+};

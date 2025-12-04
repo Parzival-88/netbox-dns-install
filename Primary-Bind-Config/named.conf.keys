@@ -1,0 +1,62 @@
+// TSIG Keys Configuration
+// Location: /etc/named.conf.keys
+// File permissions: chmod 0640, chown root:named
+//
+// IMPORTANT: After deploying, distribute the appropriate key to each secondary server
+// Each secondary only needs its own key, not all keys
+
+// ============================================
+// NETBOX TSIG KEY (Dynamic Updates)
+// ============================================
+key "netbox" {
+        algorithm hmac-sha256;
+        secret "5Be6wU3DCAWRsrfNFb996GkbmV3NaOwKLkJJ/ty9N0k=";
+};
+
+// ============================================
+// NAMESERVER TSIG KEYS (Zone Transfers)
+// ============================================
+
+// Secondary: 9.12.46.4
+key "ns-9-12-46-4" {
+        algorithm hmac-sha256;
+        secret "uiX7/BDjZ6AarReziQZEH3o8xtSyMf7UuG3XQUi+Iao=";
+};
+
+// Secondary: 9.12.46.5
+key "ns-9-12-46-5" {
+        algorithm hmac-sha256;
+        secret "FKE/mYH5oNivzZM6bwXSzIQuvysKPRtHUlsfhNilFbM=";
+};
+
+// Secondary: 9.11.227.25
+key "ns-9-11-227-25" {
+        algorithm hmac-sha256;
+        secret "w1vFw0dsnc6rVruhvKD1PJp8Da7vBxhu/ZYlxfGazaM=";
+};
+
+// Secondary: 9.11.227.26
+key "ns-9-11-227-26" {
+        algorithm hmac-sha256;
+        secret "8T6QzGl1MCbpXOkXcsmz3Wo0gbO3eotVyKSDI1RlcHo=";
+};
+
+// Secondary: 9.3.1.200
+key "ns-9-3-1-200" {
+        algorithm hmac-sha256;
+        secret "k2PvKr/Q2NZyECuZhABD6ikWIhLAOZku5R7T5NYcDeE=";
+};
+
+// Secondary: 9.5.175.8
+key "ns-9-5-175-8" {
+        algorithm hmac-sha256;
+        secret "gumKzM4lnyXJ0CxP+kywUFIo4Q2+q+MBXrBtnajw19o=";
+};
+
+// ============================================
+// THIRD-PARTY DNS TSIG KEY
+// ============================================
+key "third-party-dns" {
+        algorithm hmac-sha256;
+        secret "B1Du1/2X9/+q4sDtXIbq0z66F9x3k/VYiwBVzN+E5OM=";
+};

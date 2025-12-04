@@ -1,0 +1,195 @@
+// Named Logging Configuration
+// Location: /etc/named.conf.logging
+// Optimized for high-volume authoritative server (millions of queries/day)
+//
+// Query logging is DISABLED by default. Enable temporarily with:
+//   rndc querylog on
+//   rndc querylog off
+
+logging {
+        // ============================================
+        // CRITICAL CHANNELS - Full retention
+        // ============================================
+
+        // Zone transfers - critical for primary-secondary sync
+        channel zone_transfers_log {
+                file "/var/named/log/zone_transfers" versions 10 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Security audit - authentication, access violations
+        channel security_audit_log {
+                file "/var/named/log/security_audit" versions 10 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Rate limiting - DDoS detection and mitigation
+        channel rate_limiting_log {
+                file "/var/named/log/rate_limiting" versions 5 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // IMPORTANT CHANNELS - Moderate retention
+        // ============================================
+
+        // Dynamic DNS updates (NetBox)
+        channel ddns_log {
+                file "/var/named/log/ddns" versions 5 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Client security events
+        channel client_security_log {
+                file "/var/named/log/client_security" versions 5 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // DNSSEC operations
+        channel dnssec_log {
+                file "/var/named/log/dnssec" versions 3 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // OPERATIONAL CHANNELS - Reduced retention
+        // ============================================
+
+        // Default operations
+        channel default_log {
+                file "/var/named/log/default" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Auth server interactions (minimal for auth-only server)
+        channel auth_servers_log {
+                file "/var/named/log/auth_servers" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // RPZ (if used)
+        channel rpz_log {
+                file "/var/named/log/rpz" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // DEBUGGING CHANNELS - Minimal retention
+        // ============================================
+
+        // Query logging - DISABLED by default (use rndc querylog on)
+        channel queries_log {
+                file "/var/named/log/queries" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Query errors - for SERVFAIL troubleshooting
+        channel query-errors_log {
+                file "/var/named/log/query-errors" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity dynamic;
+        };
+
+        // Debug output
+        channel default_debug {
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                file "named.run" versions 2 size 100m;
+                severity dynamic;
+        };
+
+        // Syslog - errors and above only
+        channel default_syslog {
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                syslog daemon;
+                severity error;
+        };
+
+        // Null channel for suppressing noisy categories
+        channel null_channel {
+                null;
+        };
+
+        // ============================================
+        // CATEGORY MAPPINGS
+        // ============================================
+
+        // General operations - reduced verbosity
+        category default { default_log; default_syslog; };
+        category config { default_log; default_syslog; };
+        category dispatch { default_log; };
+        category network { default_log; };
+        category general { default_log; default_syslog; };
+
+        // Zone transfers - critical, full logging
+        category notify { zone_transfers_log; };
+        category xfer-in { zone_transfers_log; };
+        category xfer-out { zone_transfers_log; };
+
+        // Dynamic updates - important for NetBox integration
+        category update { ddns_log; };
+        category update-security { ddns_log; security_audit_log; };
+
+        // Security - always log
+        category client { client_security_log; };
+        category security { security_audit_log; };
+
+        // Rate limiting - important for DDoS visibility
+        category rate-limit { rate_limiting_log; };
+        category spill { rate_limiting_log; };
+        category database { rate_limiting_log; };
+
+        // DNSSEC
+        category dnssec { dnssec_log; };
+
+        // Resolver categories - minimal for auth-only server
+        category resolver { auth_servers_log; };
+        category cname { auth_servers_log; };
+        category delegation-only { auth_servers_log; };
+
+        // Suppress noisy categories on auth server
+        category lame-servers { null_channel; };
+        category edns-disabled { null_channel; };
+
+        // RPZ (if used)
+        category rpz { rpz_log; };
+
+        // Queries - disabled by default, enable with rndc querylog
+        category queries { queries_log; };
+        category query-errors { query-errors_log; };
+};

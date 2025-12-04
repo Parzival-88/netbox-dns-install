@@ -1,0 +1,125 @@
+// Named Options - Secondary Server Configuration
+// Secondary Server: 9.11.227.26
+//
+// HYBRID MODE: Authoritative for local zones + Recursive resolver
+// Forwards non-authoritative queries to Corp DNS
+//
+// IMPORTANT: BIND will NOT forward queries for zones we are authoritative for.
+// This prevents forwarding loops with Corp DNS delegation.
+
+options {
+        listen-on port 53 { any; };
+        listen-on-v6 port 53 { any; };
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        memstatistics-file "/var/named/data/named_mem_stats.txt";
+        secroots-file   "/var/named/data/named.secroots";
+        recursing-file  "/var/named/data/named.recursing";
+        pid-file        "/var/run/named/named.pid";
+        session-keyfile "/var/run/named/session.key";
+        managed-keys-directory "/var/named/dynamic";
+        masterfile-format text;
+
+        // ============================================
+        // HYBRID MODE - RECURSION + FORWARDING
+        // ============================================
+        recursion yes;
+        allow-recursion { internal-networks; };
+
+        forward first;
+        forwarders {
+                9.0.0.1;
+                9.0.0.2;
+        };
+
+        allow-query { any; };
+
+        // ============================================
+        // CACHE SETTINGS
+        // ============================================
+        max-cache-size 256m;
+        max-cache-ttl 86400;
+        max-ncache-ttl 3600;
+
+        // ============================================
+        // ZONE TRANSFER RESTRICTIONS
+        // ============================================
+        allow-transfer { none; };
+        allow-notify { primary-ns; };
+        notify no;
+
+        // ============================================
+        // TRANSFER LIMITS
+        // ============================================
+        transfers-in 50;
+        transfers-out 0;
+        transfers-per-ns 20;
+
+        // ============================================
+        // HIGH ZONE COUNT TUNING
+        // ============================================
+        serial-query-rate 100;
+        loading-soa-check no;
+        querylog no;
+
+        // ============================================
+        // SECURITY HARDENING
+        // ============================================
+        version "not disclosed";
+        hostname none;
+        auth-nxdomain no;
+        minimal-responses no;
+        empty-zones-enable yes;
+        dnssec-validation auto;
+
+        // ============================================
+        // RATE LIMITING
+        // ============================================
+        rate-limit {
+                responses-per-second 25;
+                nxdomains-per-second 25;
+                referrals-per-second 25;
+                errors-per-second 25;
+                all-per-second 150;
+                window 15;
+                log-only no;
+                slip 2;
+                ipv4-prefix-length 24;
+                ipv6-prefix-length 56;
+                exempt-clients { primary-ns; internal-networks; localhost; };
+        };
+
+        // ============================================
+        // CONNECTION LIMITS
+        // ============================================
+        zone-statistics full;
+        tcp-clients 300;
+        tcp-listen-queue 15;
+        recursive-clients 1000;
+        resolver-query-timeout 10;
+        query-source address * port *;
+
+        include "/etc/crypto-policies/back-ends/bind.config";
+};
+
+// ============================================
+// PRIMARY SERVER - TSIG KEY ASSOCIATION
+// ============================================
+server 9.12.46.13 {
+        keys { "ns-9-11-227-26"; };
+        transfer-format many-answers;
+};
+
+// ============================================
+// CORP DNS FORWARDERS
+// ============================================
+server 9.0.0.1 {
+        edns yes;
+        edns-version 0;
+};
+
+server 9.0.0.2 {
+        edns yes;
+        edns-version 0;
+};

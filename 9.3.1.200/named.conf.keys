@@ -1,0 +1,13 @@
+// TSIG Keys Configuration
+// Secondary Server: 9.3.1.200
+// File permissions: chmod 0640, chown root:named
+
+key "ns-9-3-1-200" {
+        algorithm hmac-sha256;
+        secret "k2PvKr/Q2NZyECuZhABD6ikWIhLAOZku5R7T5NYcDeE=";
+};
+
+key "rndc-key" {
+        algorithm hmac-sha256;
+        secret "pLiGzkKH2ovXPKtjuRANLNg0woBaLGMQFQduYwLukuI=";
+};

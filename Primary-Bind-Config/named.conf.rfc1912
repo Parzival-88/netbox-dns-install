@@ -1,0 +1,32 @@
+// RFC 1912 Localhost Zones
+// Location: /etc/named.conf.rfc1912
+
+zone "localhost.localdomain" IN {
+        type primary;
+        file "/var/named/zones/named.localhost";
+        allow-update { none; };
+};
+
+zone "localhost" IN {
+        type primary;
+        file "/var/named/zones/named.localhost";
+        allow-update { none; };
+};
+
+zone "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa" IN {
+        type primary;
+        file "/var/named/zones/named.loopback";
+        allow-update { none; };
+};
+
+zone "1.0.0.127.in-addr.arpa" IN {
+        type primary;
+        file "/var/named/zones/named.loopback";
+        allow-update { none; };
+};
+
+zone "0.in-addr.arpa" IN {
+        type primary;
+        file "/var/named/zones/named.empty";
+        allow-update { none; };
+};

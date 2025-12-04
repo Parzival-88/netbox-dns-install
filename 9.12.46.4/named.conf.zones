@@ -1,0 +1,53 @@
+// Secondary Zone Definitions
+// Secondary Server: 9.12.46.4
+//
+// All zones are pulled from primary server 9.12.46.13
+// TSIG authentication uses key "ns-9-12-46-4"
+
+// ============================================
+// ZONE TEMPLATE - Forward Zone
+// ============================================
+// zone "example.com" {
+//         type secondary;
+//         file "/var/named/secondaries/example.com.db";
+//         primaries { 9.12.46.13 key "ns-9-12-46-4"; };
+//         allow-notify { 9.12.46.13; };
+//         allow-transfer { none; };
+// };
+
+// ============================================
+// ZONE TEMPLATE - Reverse Zone
+// ============================================
+// zone "219.11.9.in-addr.arpa" {
+//         type secondary;
+//         file "/var/named/secondaries/219.11.9.in-addr.arpa.db";
+//         primaries { 9.12.46.13 key "ns-9-12-46-4"; };
+//         allow-notify { 9.12.46.13; };
+//         allow-transfer { none; };
+// };
+
+// ============================================
+// ACTUAL ZONE DEFINITIONS
+// ============================================
+// Add your secondary zones below, or use automation to generate them
+// 
+// For ~3000 zones, consider generating this file from NetBox/OctoDNS
+// using the template format above.
+
+// Example forward zone:
+// zone "apps.bnr-bm-cet1.fusion.tadn.ibm.com" {
+//         type secondary;
+//         file "/var/named/secondaries/apps.bnr-bm-cet1.fusion.tadn.ibm.com.db";
+//         primaries { 9.12.46.13 key "ns-9-12-46-4"; };
+//         allow-notify { 9.12.46.13; };
+//         allow-transfer { none; };
+// };
+
+// Example reverse zone:
+// zone "219.11.9.in-addr.arpa" {
+//         type secondary;
+//         file "/var/named/secondaries/219.11.9.in-addr.arpa.db";
+//         primaries { 9.12.46.13 key "ns-9-12-46-4"; };
+//         allow-notify { 9.12.46.13; };
+//         allow-transfer { none; };
+// };

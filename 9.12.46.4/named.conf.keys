@@ -1,0 +1,20 @@
+// TSIG Keys Configuration
+// Secondary Server: 9.12.46.4
+// File permissions: chmod 0640, chown root:named
+
+// ============================================
+// THIS SERVER'S TSIG KEY
+// ============================================
+// Used to authenticate zone transfers from primary
+key "ns-9-12-46-4" {
+        algorithm hmac-sha256;
+        secret "uiX7/BDjZ6AarReziQZEH3o8xtSyMf7UuG3XQUi+Iao=";
+};
+
+// ============================================
+// RNDC KEY
+// ============================================
+key "rndc-key" {
+        algorithm hmac-sha256;
+        secret "7/8eu3nDj33FAbNxsPQQ3oAXA+MHAyPJNAcVww+85D0=";
+};

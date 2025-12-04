@@ -1,0 +1,26 @@
+// RNDC Controls Configuration
+// Location: /etc/named.conf.controls
+// Include this in named.conf to enable RNDC management
+
+// RNDC key definition (must match rndc.conf)
+key "rndc-key" {
+        algorithm hmac-sha256;
+        secret "7DbNEv34rZ4TT1l81DDAeNBv3yftsdGT+r3AGZ03YhA=";
+};
+
+// Controls block - defines who can use RNDC
+controls {
+        // Local management only (recommended for security)
+        inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
+
+        // Uncomment to allow remote RNDC from management hosts
+        // inet * port 953 allow { management; } keys { "rndc-key"; };
+};
+
+// Statistics channels (optional - useful for monitoring)
+// Access restricted to localhost by default
+statistics-channels {
+        inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+        // Uncomment for remote monitoring:
+        // inet * port 8053 allow { management; };
+};
