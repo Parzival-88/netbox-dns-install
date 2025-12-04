@@ -23,12 +23,8 @@ acl "sgn-ns" {
 acl "netbox" {
         // Localhost leave uncommented
         127.0.0.1;
-        // netbox-test.sgn.ibm.com
-        //9.12.46.7;
-        // netbox-dev.sgn.ibm.com
-        9.12.46.8;
-        // netbox.sgn.ibm.com
-        //9.12.46.13;
+        // Netbox Public IP
+        $ip
 };
 
 // ============================================
