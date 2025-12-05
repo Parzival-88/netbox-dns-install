@@ -148,6 +148,13 @@ BIND_DIR_MODE = 0o755
 BIND_PRIMARY_CONFIG_DIR = "netbox-primary"
 
 # =============================================================================
+# NetBox Plugin Settings
+# =============================================================================
+
+# SSH git repository for netbox-ipdns plugin
+NETBOX_IPDNS_REPO = "git@github.com:Parzival-88/netbox-ipdns.git"
+
+# =============================================================================
 # OctoDNS Configuration
 # =============================================================================
 
