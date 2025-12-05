@@ -15,6 +15,62 @@ import re
 logger = logging.getLogger(__name__)
 
 
+def create_shared_directory(shared_dir, user, group, mode):
+    """
+    Creates the IPDNS shared directory with proper ownership and permissions.
+
+    Args:
+        shared_dir: Path to the shared directory to create
+        user: Username for ownership
+        group: Group name for ownership
+        mode: Permission mode (e.g., 0o755)
+
+    Returns:
+        True if directory created and configured successfully, False otherwise
+    """
+    import stat
+
+    logger.info(f"Creating shared directory: {shared_dir}")
+
+    try:
+        # Create directory and parent directories
+        os.makedirs(shared_dir, exist_ok=True)
+        logger.info(f"Directory created: {shared_dir}")
+
+        # Set ownership
+        command = ["chown", f"{user}:{group}", shared_dir]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Failed to set ownership: {result.stderr}")
+            return False
+
+        logger.info(f"Ownership set to {user}:{group}")
+
+        # Set base permissions
+        os.chmod(shared_dir, mode)
+
+        # Add SGID bit so new files inherit the group
+        current_mode = os.stat(shared_dir).st_mode
+        new_mode = current_mode | stat.S_ISGID
+        os.chmod(shared_dir, new_mode)
+
+        logger.info(f"Permissions set to {oct(mode)} with SGID")
+        return True
+
+    except OSError as e:
+        logger.error(f"Failed to create shared directory: {e}")
+        return False
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to set ownership: {e}")
+        return False
+
+
 def clone_repository(repo_url, dest_path):
     """
     Clones a git repository to the specified destination.
@@ -213,15 +269,19 @@ def configure_global_variables(plugins_path, ipdns_config):
         return False
 
 
-def install_ipdns(repo_url, plugins_path, ipdns_config):
+def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, user, group):
     """
     Main entry point for netbox-ipdns plugin installation.
-    Clones the plugin repository and configures global_variables.py.
+    Clones the plugin repository, configures global_variables.py, and creates shared directory.
 
     Args:
         repo_url: SSH URL of the netbox-ipdns repository
         plugins_path: Path to the NetBox plugins directory
         ipdns_config: Dictionary containing configuration values
+        shared_dir: Path to the shared directory to create
+        dir_mode: Permission mode for the shared directory
+        user: Username for shared directory ownership
+        group: Group name for shared directory ownership
 
     Returns:
         True if installation succeeded, False otherwise
@@ -233,6 +293,11 @@ def install_ipdns(repo_url, plugins_path, ipdns_config):
     # Verify plugins directory exists
     if not os.path.exists(plugins_path):
         logger.error(f"Plugins directory does not exist: {plugins_path}")
+        return False
+
+    # Create shared directory with proper ownership and permissions
+    if not create_shared_directory(shared_dir, user, group, dir_mode):
+        logger.error("Failed to create shared directory")
         return False
 
     # Clone the repository

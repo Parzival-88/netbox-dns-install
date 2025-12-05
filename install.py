@@ -248,7 +248,11 @@ def run_ipdns_install(logger):
     return ipdns_install.install_ipdns(
         repo_url=config.NETBOX_IPDNS_REPO,
         plugins_path=config.PLUGINS_PATH,
-        ipdns_config=ipdns_config
+        ipdns_config=ipdns_config,
+        shared_dir=config.IPDNS_SHARED_DIR,
+        dir_mode=config.IPDNS_DIR_MODE,
+        user=config.IPDNS_USER,
+        group=config.IPDNS_GROUP
     )
 
 

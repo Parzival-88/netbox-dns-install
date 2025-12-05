@@ -191,6 +191,16 @@ IPDNS_DEFAULT_NAMESERVERS = [
 # Tenant group prefix for IPDNS
 IPDNS_TENANT_GROUP_PREFIX = "sgn-tenant"
 
+# Shared directory for netbox-ipdns plugin
+IPDNS_SHARED_DIR = "/opt/netbox/shared/netbox-ipdns"
+
+# Directory permissions mode for IPDNS shared directory
+IPDNS_DIR_MODE = 0o755
+
+# User and group for IPDNS shared directory ownership
+IPDNS_USER = "netbox"
+IPDNS_GROUP = "netbox"
+
 # =============================================================================
 # OctoDNS Configuration
 # =============================================================================
