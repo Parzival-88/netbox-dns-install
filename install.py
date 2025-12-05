@@ -15,6 +15,7 @@ import config
 # Import installation modules
 from modules import pip_dependencies
 from modules import bind_install
+from modules import octodns_install
 
 
 def setup_logging():
@@ -53,6 +54,9 @@ Examples:
   # Install DNS as secondary server
   python3 install.py --dns --secondary 9.11.227.25
 
+  # Install OctoDNS configuration
+  python3 install.py --octodns
+
   # Install pip packages and DNS together
   python3 install.py --pip-packages --dns --primary
 
@@ -82,12 +86,19 @@ Examples:
         help="Configure as primary DNS server (uses server_ip from environment config)"
     )
 
-    # Secondary IP for DNS (used with --dns-install)
+    # Secondary IP for DNS (used with --dns)
     parser.add_argument(
         "--secondary",
         type=str,
         metavar="IP",
         help="Configure as secondary DNS server using config for specified IP"
+    )
+
+    # OctoDNS install module
+    parser.add_argument(
+        "--octodns",
+        action="store_true",
+        help="Install and configure OctoDNS with config.yaml"
     )
 
     # Install all modules
@@ -107,7 +118,7 @@ Examples:
             parser.error("Cannot specify both --primary and --secondary")
 
     # Check if no modules selected
-    if not args.pip_packages and not args.dns and not args.all:
+    if not args.pip_packages and not args.dns and not args.octodns and not args.all:
         parser.error("No installation module selected. Use --help for options.")
 
     return args
@@ -166,6 +177,34 @@ def run_dns_install(logger, is_primary=False, secondary_ip=None):
     )
 
 
+def run_octodns_install(logger):
+    """
+    Executes the OctoDNS installation module.
+
+    Args:
+        logger: Logger instance for output
+
+    Returns:
+        True if successful, False otherwise
+    """
+    logger.info("=" * 60)
+    logger.info("Module: OctoDNS Installation")
+    logger.info("=" * 60)
+
+    # Get environment config for template substitution
+    env_config = config.get_env_config()
+
+    return octodns_install.install_octodns(
+        config_dir=config.OCTODNS_CONFIG_DIR,
+        config_file=config.OCTODNS_CONFIG_FILE,
+        template=config.OCTODNS_CONFIG_TEMPLATE,
+        dir_mode=config.OCTODNS_DIR_MODE,
+        user=config.OCTODNS_USER,
+        group=config.OCTODNS_GROUP,
+        env_config=env_config
+    )
+
+
 def main():
     """
     Main entry point for the installer.
@@ -188,6 +227,7 @@ def main():
     # Determine which modules to run
     run_pip = args.pip_packages or args.all
     run_dns = args.dns or args.all
+    run_octodns = args.octodns or args.all
 
     # Execute pip packages module
     if run_pip:
@@ -199,6 +239,12 @@ def main():
     if run_dns:
         if not run_dns_install(logger, args.primary, args.secondary):
             logger.error("Failed to install BIND DNS")
+            success = False
+
+    # Execute OctoDNS install module
+    if run_octodns:
+        if not run_octodns_install(logger):
+            logger.error("Failed to install OctoDNS")
             success = False
 
     # Final status report

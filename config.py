@@ -146,3 +146,59 @@ BIND_DIR_MODE = 0o755
 
 # Primary BIND config source directory name
 BIND_PRIMARY_CONFIG_DIR = "netbox-primary"
+
+# =============================================================================
+# OctoDNS Configuration
+# =============================================================================
+
+# Directory for OctoDNS configuration files
+OCTODNS_CONFIG_DIR = "/opt/octodns/config"
+
+# Path to the main OctoDNS config file
+OCTODNS_CONFIG_FILE = "/opt/octodns/config/config.yaml"
+
+# Directory permissions mode
+OCTODNS_DIR_MODE = 0o755
+
+# User and group for OctoDNS directory ownership
+OCTODNS_USER = "root"
+OCTODNS_GROUP = "named"
+
+# OctoDNS config.yaml template with placeholders for environment variables
+OCTODNS_CONFIG_TEMPLATE = """---
+providers:
+
+  netbox:
+     class: octodns_netbox_dns.NetBoxDNSProvider
+     url: $server_url
+     token: "$server_api_key"
+     view: false
+     replace_duplicates: false
+     make_absolute: false
+     disable_ptr: false
+     insecure_request: true
+
+  rfc2136:
+    class: octodns_bind.Rfc2136Provider
+    # The address of nameserver to perform zone transfer against
+    host: $server_ip
+    # The port that the nameserver is listening on. Optional. Default: 53
+    port: 53
+    # Use IPv6 to perform operations. Optional. Default: False
+    ipv6: False
+    # The number of seconds to wait until timing out. Optional. Default: 15
+    timeout: 15
+    # optional, default: non-authed
+    key_name: netbox
+    # optional, default: non-authed
+    key_secret: 5Be6wU3DCAWRsrfNFb996GkbmV3NaOwKLkJJ/ty9N0k=
+    # optional, see https://github.com/rthalley/dnspython/blob/master/dns/tsig.py#L78
+    # for available algorithms
+    key_algorithm: hmac-sha256
+
+zones:
+
+# Forward Zones - All zones/domains that form a FQDN
+
+# Reverse Zone - All reverse zones for prefixes in Netbox
+"""
