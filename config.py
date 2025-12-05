@@ -59,6 +59,12 @@ BIND_CONFIGS_PATH = os.path.join(INSTALLER_BASE_PATH, "bind-environment-configs"
 # NetBox Directory Paths
 # =============================================================================
 
+# Base path to the NetBox installation
+NETBOX_PATH = "/opt/netbox/current"
+
+# Path to the Python executable in the virtual environment
+PYTHON_PATH = "/opt/netbox/current/venv-py3/bin/python"
+
 # Path to the Python virtual environment used by NetBox
 VENV_PATH = "/opt/netbox/current/venv-py3/"
 
@@ -148,11 +154,42 @@ BIND_DIR_MODE = 0o755
 BIND_PRIMARY_CONFIG_DIR = "netbox-primary"
 
 # =============================================================================
-# NetBox Plugin Settings
+# NetBox IPDNS Plugin Settings
 # =============================================================================
 
 # SSH git repository for netbox-ipdns plugin
 NETBOX_IPDNS_REPO = "git@github.com:Parzival-88/netbox-ipdns.git"
+
+# Default SOA RNAME (responsible person email in DNS format)
+IPDNS_DEFAULT_SOA_RNAME = "sgn-netbox.ibm.com"
+
+# Default MNAME (primary nameserver) for SOA records
+IPDNS_DEFAULT_MNAME = "netbox.sgn.ibm.com"
+
+# Protected zones that require special permissions to modify
+IPDNS_PROTECTED_ZONES = [
+    "stglabs.ibm.com",
+    "pok.stglabs.ibm.com",
+    "aus.stglabs.ibm.com",
+    "tuc.stglabs.ibm.com",
+    "rch.stglabs.ibm.com",
+    "rtp.stglabs.ibm.com",
+    "alm.stglabs.ibm.com",
+    "gdl.stglabs.ibm.com",
+    "sgn.ibm.com",
+    "tadn.ibm.com",
+]
+
+# Default nameservers for new zones
+IPDNS_DEFAULT_NAMESERVERS = [
+    "pokdns-att-01.stglabs.ibm.com",
+    "pokdns-att-02.stglabs.ibm.com",
+    "tucdns-att-01.stglabs.ibm.com",
+    "tucdns-att-02.stglabs.ibm.com",
+]
+
+# Tenant group prefix for IPDNS
+IPDNS_TENANT_GROUP_PREFIX = "sgn-tenant"
 
 # =============================================================================
 # OctoDNS Configuration

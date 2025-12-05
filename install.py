@@ -230,9 +230,25 @@ def run_ipdns_install(logger):
     logger.info("Module: netbox-ipdns Plugin Installation")
     logger.info("=" * 60)
 
+    # Get environment config for API key
+    env_config = config.get_env_config()
+
+    # Build IPDNS configuration dictionary
+    ipdns_config = {
+        "netbox_path": config.NETBOX_PATH,
+        "python_path": config.PYTHON_PATH,
+        "server_api_key": env_config["server_api_key"],
+        "default_soa_rname": config.IPDNS_DEFAULT_SOA_RNAME,
+        "default_mname": config.IPDNS_DEFAULT_MNAME,
+        "protected_zones": config.IPDNS_PROTECTED_ZONES,
+        "default_nameservers": config.IPDNS_DEFAULT_NAMESERVERS,
+        "tenant_group_prefix": config.IPDNS_TENANT_GROUP_PREFIX,
+    }
+
     return ipdns_install.install_ipdns(
         repo_url=config.NETBOX_IPDNS_REPO,
-        plugins_path=config.PLUGINS_PATH
+        plugins_path=config.PLUGINS_PATH,
+        ipdns_config=ipdns_config
     )
 
 
