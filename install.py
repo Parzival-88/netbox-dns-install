@@ -47,17 +47,17 @@ Examples:
   # Install only pip packages
   python3 install.py --pip-packages
 
-  # Install DNS as primary server
-  python3 install.py --dns-install --primary-ip 10.1.2.3
+  # Install DNS as primary server (uses server_ip from ENVIRONMENT config)
+  python3 install.py --dns --primary
 
   # Install DNS as secondary server
-  python3 install.py --dns-install --secondary-ip 9.11.227.25
+  python3 install.py --dns --secondary 9.11.227.25
 
   # Install pip packages and DNS together
-  python3 install.py --pip-packages --dns-install --primary-ip 10.1.2.3
+  python3 install.py --pip-packages --dns --primary
 
   # Install all components
-  python3 install.py --all --primary-ip 10.1.2.3
+  python3 install.py --all --primary
         """
     )
 
@@ -70,22 +70,21 @@ Examples:
 
     # DNS install module
     parser.add_argument(
-        "--dns-install",
+        "--dns",
         action="store_true",
         help="Install and configure BIND DNS server in chroot environment"
     )
 
-    # Primary IP for DNS (used with --dns-install)
+    # Primary flag for DNS (used with --dns)
     parser.add_argument(
-        "--primary-ip",
-        type=str,
-        metavar="IP",
-        help="Configure as primary DNS server with specified IP address"
+        "--primary",
+        action="store_true",
+        help="Configure as primary DNS server (uses server_ip from environment config)"
     )
 
     # Secondary IP for DNS (used with --dns-install)
     parser.add_argument(
-        "--secondary-ip",
+        "--secondary",
         type=str,
         metavar="IP",
         help="Configure as secondary DNS server using config for specified IP"
@@ -101,14 +100,14 @@ Examples:
     args = parser.parse_args()
 
     # Validate arguments
-    if args.dns_install or args.all:
-        if not args.primary_ip and not args.secondary_ip:
-            parser.error("--dns-install requires either --primary-ip or --secondary-ip")
-        if args.primary_ip and args.secondary_ip:
-            parser.error("Cannot specify both --primary-ip and --secondary-ip")
+    if args.dns or args.all:
+        if not args.primary and not args.secondary:
+            parser.error("--dns requires either --primary or --secondary")
+        if args.primary and args.secondary:
+            parser.error("Cannot specify both --primary and --secondary")
 
     # Check if no modules selected
-    if not args.pip_packages and not args.dns_install and not args.all:
+    if not args.pip_packages and not args.dns and not args.all:
         parser.error("No installation module selected. Use --help for options.")
 
     return args
@@ -134,18 +133,22 @@ def run_pip_packages(logger):
     )
 
 
-def run_dns_install(logger, primary_ip=None, secondary_ip=None):
+def run_dns_install(logger, is_primary=False, secondary_ip=None):
     """
     Executes the BIND DNS installation module.
 
     Args:
         logger: Logger instance for output
-        primary_ip: IP address for primary DNS configuration
+        is_primary: True if installing as primary DNS server
         secondary_ip: IP address for secondary DNS configuration
 
     Returns:
         True if successful, False otherwise
     """
+    # Get server_ip from environment config for primary installs
+    env_config = config.get_env_config()
+    primary_ip = env_config["server_ip"] if is_primary else None
+
     return bind_install.install_dns(
         configs_path=config.BIND_CONFIGS_PATH,
         primary_config_dir=config.BIND_PRIMARY_CONFIG_DIR,
@@ -184,7 +187,7 @@ def main():
 
     # Determine which modules to run
     run_pip = args.pip_packages or args.all
-    run_dns = args.dns_install or args.all
+    run_dns = args.dns or args.all
 
     # Execute pip packages module
     if run_pip:
@@ -194,7 +197,7 @@ def main():
 
     # Execute DNS install module
     if run_dns:
-        if not run_dns_install(logger, args.primary_ip, args.secondary_ip):
+        if not run_dns_install(logger, args.primary, args.secondary):
             logger.error("Failed to install BIND DNS")
             success = False
 

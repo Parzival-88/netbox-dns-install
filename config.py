@@ -7,6 +7,45 @@ Contains all paths, dependencies, and settings used throughout the installation 
 import os
 
 # =============================================================================
+# Environment Configuration
+# =============================================================================
+
+# Current environment: "dev", "test", or "prod"
+ENVIRONMENT = "dev"
+
+# Environment-specific settings
+ENVIRONMENTS = {
+    "prod": {
+        "server_ip": "9.12.46.13",
+        "server_url": "https://netbox.sgn.ibm.com",
+        "server_api_key": "09aa8b0b70a15e77b6845baa8be4de90880e14d6",
+    },
+    "test": {
+        "server_ip": "9.12.46.7",
+        "server_url": "https://netbox-test.sgn.ibm.com",
+        "server_api_key": "09aa8b0b70a15e77b6845baa8be4de90880e14d6",
+    },
+    "dev": {
+        "server_ip": "9.12.46.8",
+        "server_url": "https://netbox-dev.sgn.ibm.com",
+        "server_api_key": "09aa8b0b70a15e77b6845baa8be4de90880e14d6",
+    },
+}
+
+
+def get_env_config():
+    """
+    Returns the configuration dictionary for the current environment.
+
+    Returns:
+        dict: Environment configuration with server_ip, server_url, server_api_key
+    """
+    if ENVIRONMENT not in ENVIRONMENTS:
+        raise ValueError(f"Invalid ENVIRONMENT: {ENVIRONMENT}. Must be one of: {list(ENVIRONMENTS.keys())}")
+    return ENVIRONMENTS[ENVIRONMENT]
+
+
+# =============================================================================
 # Installer Base Path
 # =============================================================================
 
