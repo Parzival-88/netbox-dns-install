@@ -145,28 +145,30 @@ def update_netbox_configuration(config_file, logging_config, plugins_list, plugi
         with open(config_file, 'r') as f:
             content = f.read()
 
-        # Replace LOGGING configuration
+        # Replace LOGGING configuration (handles single or multi-line assignments)
+        # Matches from LOGGING = to closing ) with optional whitespace/newlines
         content = re.sub(
-            r'^LOGGING\s*=.*$',
+            r'^LOGGING\s*=\s*json\.loads\(r?[\'\"]{1,3}.*?[\'\"]{1,3}\s*\)',
             f"LOGGING = json.loads(r'''{logging_config}''')",
             content,
-            flags=re.MULTILINE
+            flags=re.MULTILINE | re.DOTALL
         )
 
-        # Replace PLUGINS configuration
+        # Replace PLUGINS configuration (handles single or multi-line assignments)
+        # Use word boundary to avoid matching PLUGINS_CONFIG
         content = re.sub(
-            r'^PLUGINS\s*=.*$',
+            r'^PLUGINS\s*=\s*json\.loads\(r?[\'\"]{1,3}.*?[\'\"]{1,3}\s*\)(?=\s*\n)',
             f"PLUGINS = json.loads(r'''{plugins_list}''')",
             content,
-            flags=re.MULTILINE
+            flags=re.MULTILINE | re.DOTALL
         )
 
-        # Replace PLUGINS_CONFIG configuration
+        # Replace PLUGINS_CONFIG configuration (handles single or multi-line assignments)
         content = re.sub(
-            r'^PLUGINS_CONFIG\s*=.*$',
+            r'^PLUGINS_CONFIG\s*=\s*json\.loads\(r?[\'\"]{1,3}.*?[\'\"]{1,3}\s*\)',
             f"PLUGINS_CONFIG = json.loads(r'''{plugins_config}''')",
             content,
-            flags=re.MULTILINE
+            flags=re.MULTILINE | re.DOTALL
         )
 
         # Ensure json import exists at the top of the file
@@ -384,6 +386,170 @@ def create_shared_directory(shared_dir, user, group, mode):
         return False
 
 
+def create_log_directory(log_dir, log_file, user, group, mode):
+    """
+    Creates or configures the log directory and creates an empty log file.
+    If the directory exists, only sets permissions and ownership.
+    Creates an empty log file owned by the specified user/group.
+
+    Args:
+        log_dir: Path to the log directory
+        log_file: Path to the log file to create
+        user: Username for ownership
+        group: Group name for ownership
+        mode: Permission mode (e.g., 0o755)
+
+    Returns:
+        True if directory and file configured successfully, False otherwise
+    """
+    import stat
+
+    logger.info(f"Configuring log directory: {log_dir}")
+
+    try:
+        # Check if directory exists
+        if os.path.exists(log_dir):
+            logger.info(f"Log directory already exists: {log_dir}")
+        else:
+            # Create directory if it doesn't exist
+            os.makedirs(log_dir, exist_ok=True)
+            logger.info(f"Created log directory: {log_dir}")
+
+        # Set ownership on the directory
+        command = ["chown", f"{user}:{group}", log_dir]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Failed to set ownership on log directory: {result.stderr}")
+            return False
+
+        logger.info(f"Log directory ownership set to {user}:{group}")
+
+        # Set base permissions
+        os.chmod(log_dir, mode)
+
+        # Add SGID bit so new files inherit the group
+        current_mode = os.stat(log_dir).st_mode
+        new_mode = current_mode | stat.S_ISGID
+        os.chmod(log_dir, new_mode)
+
+        logger.info(f"Log directory permissions set to {oct(mode)} with SGID")
+
+        # Create empty log file if it doesn't exist
+        if not os.path.exists(log_file):
+            # Create empty file
+            with open(log_file, 'w') as f:
+                pass
+            logger.info(f"Created empty log file: {log_file}")
+        else:
+            logger.info(f"Log file already exists: {log_file}")
+
+        # Set ownership on the log file
+        command = ["chown", f"{user}:{group}", log_file]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Failed to set ownership on log file: {result.stderr}")
+            return False
+
+        logger.info(f"Log file ownership set to {user}:{group}")
+
+        return True
+
+    except OSError as e:
+        logger.error(f"Failed to configure log directory: {e}")
+        return False
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to set ownership: {e}")
+        return False
+
+
+def set_directory_ownership(directory, user, group, recursive=True):
+    """
+    Sets ownership on a directory and optionally its contents recursively.
+
+    Args:
+        directory: Path to the directory
+        user: Username for ownership
+        group: Group name for ownership
+        recursive: If True, apply ownership recursively to all contents
+
+    Returns:
+        True if ownership set successfully, False otherwise
+    """
+    logger.info(f"Setting ownership on {directory} to {user}:{group}")
+
+    try:
+        if recursive:
+            command = ["chown", "-R", f"{user}:{group}", directory]
+        else:
+            command = ["chown", f"{user}:{group}", directory]
+
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Failed to set ownership: {result.stderr}")
+            return False
+
+        logger.info(f"Ownership set to {user}:{group} on {directory}")
+        return True
+
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to set ownership: {e}")
+        return False
+
+
+def pip_install_plugin(pip_path, plugin_path):
+    """
+    Installs a plugin in editable mode using pip install -e.
+
+    Args:
+        pip_path: Path to the pip executable in the virtual environment
+        plugin_path: Path to the plugin directory to install
+
+    Returns:
+        True if installation succeeded, False otherwise
+    """
+    logger.info(f"Installing plugin from {plugin_path} using pip install -e")
+
+    try:
+        command = [pip_path, "install", "-e", plugin_path]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode == 0:
+            logger.info("Plugin installed successfully")
+            if result.stdout:
+                logger.debug(result.stdout)
+            return True
+        else:
+            logger.error(f"pip install failed: {result.stderr}")
+            return False
+
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to run pip install: {e}")
+        return False
+
+
 def clone_repository(repo_url, dest_path):
     """
     Clones a git repository to the specified destination.
@@ -586,7 +752,7 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
                   netbox_override_dir, rqworker_override_dir, service_override_content,
                   sudoers_file, sudoers_content, services, netbox_config_file,
                   logging_config, plugins_list, plugins_config_settings,
-                  python_path, manage_py):
+                  python_path, manage_py, log_dir, log_file, pip_path):
     """
     Main entry point for netbox-ipdns plugin installation.
     Stops services, clones the plugin repository, configures global_variables.py,
@@ -613,6 +779,9 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
         plugins_config_settings: JSON string for PLUGINS_CONFIG
         python_path: Path to the Python executable
         manage_py: Path to Django manage.py
+        log_dir: Path to the log directory for netbox-ipdns
+        log_file: Path to the log file for netbox-ipdns
+        pip_path: Path to the pip executable in the virtual environment
 
     Returns:
         True if installation succeeded, False otherwise
@@ -621,10 +790,14 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
     logger.info("Starting netbox-ipdns Plugin Installation")
     logger.info("=" * 60)
 
-    # Verify plugins directory exists
+    # Create plugins directory if it doesn't exist
     if not os.path.exists(plugins_path):
-        logger.error(f"Plugins directory does not exist: {plugins_path}")
-        return False
+        logger.info(f"Plugins directory does not exist, creating: {plugins_path}")
+        if not create_shared_directory(plugins_path, user, group, dir_mode):
+            logger.error("Failed to create plugins directory")
+            return False
+    else:
+        logger.info(f"Plugins directory exists: {plugins_path}")
 
     # Stop NetBox services before making changes
     if not stop_services(services):
@@ -636,9 +809,31 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
         logger.error("Failed to create shared directory")
         return False
 
+    # Create logs subdirectory under shared directory
+    logs_subdir = os.path.join(shared_dir, "logs")
+    if not create_shared_directory(logs_subdir, user, group, dir_mode):
+        logger.error("Failed to create logs subdirectory")
+        return False
+
+    # Create or configure log directory and log file
+    if not create_log_directory(log_dir, log_file, user, group, dir_mode):
+        logger.error("Failed to configure log directory")
+        return False
+
     # Clone the repository
     if not clone_repository(repo_url, plugins_path):
         logger.error("Failed to clone netbox-ipdns repository")
+        return False
+
+    # Set ownership on cloned netbox-ipdns directory recursively
+    ipdns_dir = os.path.join(plugins_path, "netbox-ipdns")
+    if not set_directory_ownership(ipdns_dir, user, group, recursive=True):
+        logger.error("Failed to set ownership on netbox-ipdns directory")
+        return False
+
+    # Install the plugin using pip install -e
+    if not pip_install_plugin(pip_path, ipdns_dir):
+        logger.error("Failed to install netbox-ipdns plugin via pip")
         return False
 
     # Copy global_variables.example.py to global_variables.py

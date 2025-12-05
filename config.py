@@ -65,6 +65,9 @@ NETBOX_PATH = "/opt/netbox/current"
 # Path to the Python executable in the virtual environment
 PYTHON_PATH = "/opt/netbox/current/venv-py3/bin/python"
 
+# Path to the pip executable in the virtual environment
+PIP_PATH = "/opt/netbox/current/venv-py3/bin/pip"
+
 # Path to the Python virtual environment used by NetBox
 VENV_PATH = "/opt/netbox/current/venv-py3/"
 
@@ -235,7 +238,11 @@ NETBOX_SERVICES = [
 ]
 
 # Logging configuration for NetBox with netbox-ipdns support
-IPDNS_LOGGING_CONFIG = r'''{"version": 1, "disable_existing_loggers": false, "formatters": {"verbose": {"format": "[{asctime}] {levelname} {name} {module} {process:d} {thread:d} - {message}", "style": "{"}, "simple": {"format": "{levelname}: {message}", "style": "{"}}, "handlers": {"file": {"level": "INFO", "class": "logging.FileHandler", "filename": "/opt/netbox/netbox/logs/debug.log", "formatter": "verbose"}, "console": {"level": "INFO", "class": "logging.StreamHandler", "formatter": "simple"}, "netbox_ipdns_file": {"level": "DEBUG", "class": "logging.FileHandler", "filename": "/opt/netbox/netbox/logs/netbox-ipdns.log", "formatter": "verbose"}, "netbox_ipdns_console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"}}, "root": {"handlers": ["file", "console"], "level": "DEBUG"}, "loggers": {"django": {"handlers": ["file"], "level": "INFO", "propagate": true}, "netbox": {"handlers": ["file"], "level": "INFO", "propagate": false}, "django.request": {"handlers": ["file"], "level": "INFO", "propagate": false}, "django.db.backends": {"handlers": ["file"], "level": "INFO", "propagate": false}, "netbox_ipdns": {"handlers": ["netbox_ipdns_file", "netbox_ipdns_console"], "level": "DEBUG", "propagate": false}}}'''
+IPDNS_LOGGING_CONFIG = r'''{"version": 1, "disable_existing_loggers": false, "formatters": {"normal": {"format": "%(asctime)s %(name)s %(levelname)s: %(message)s"}, "verbose": {"format": "[{asctime}] {levelname} {name} {module} {process:d} {thread:d} - {message}", "style": "{"}, "simple": {"format": "{levelname}: {message}", "style": "{"}}, "handlers": {"console": {"class": "logging.StreamHandler"}, "file": {"level": "DEBUG", "class": "logging.handlers.WatchedFileHandler", "filename": "/var/log/netbox/netbox.log", "formatter": "normal"}, "netbox_ipdns_file": {"level": "DEBUG", "class": "logging.FileHandler", "filename": "/var/log/netbox/netbox-ipdns.log", "formatter": "verbose"}, "netbox_ipdns_console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"}}, "loggers": {"django": {"handlers": ["console"], "level": "INFO"}, "netbox": {"handlers": ["file"], "level": "DEBUG"}, "netbox_ipdns": {"handlers": ["netbox_ipdns_file", "netbox_ipdns_console"], "level": "DEBUG", "propagate": false}}}'''
+
+# Log directory and file for netbox-ipdns
+IPDNS_LOG_DIR = "/var/log/netbox"
+IPDNS_LOG_FILE = "/var/log/netbox/netbox-ipdns.log"
 
 # Plugins list for NetBox configuration
 IPDNS_PLUGINS_LIST = r'''["netbox_dns", "netbox_ipdns", "netbox_lists"]'''

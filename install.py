@@ -266,7 +266,10 @@ def run_ipdns_install(logger):
         plugins_list=config.IPDNS_PLUGINS_LIST,
         plugins_config_settings=config.IPDNS_PLUGINS_CONFIG_SETTINGS,
         python_path=config.PYTHON_PATH,
-        manage_py=config.MANAGE_PY
+        manage_py=config.MANAGE_PY,
+        log_dir=config.IPDNS_LOG_DIR,
+        log_file=config.IPDNS_LOG_FILE,
+        pip_path=config.PIP_PATH
     )
 
 
