@@ -24,7 +24,7 @@ acl "netbox" {
         // Localhost leave uncommented
         127.0.0.1;
         // Netbox Public IP
-        $ip
+        $ip;
 };
 
 // ============================================

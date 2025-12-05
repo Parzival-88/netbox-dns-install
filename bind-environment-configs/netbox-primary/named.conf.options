@@ -87,9 +87,6 @@ options {
         // SOA queries per second for zone refresh checks
         serial-query-rate 100;
 
-        // Skip SOA validation at startup - faster restart with 3K zones
-        loading-soa-check no;
-
         // ============================================
         // LOGGING CONTROL
         // ============================================
