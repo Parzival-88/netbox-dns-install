@@ -15,6 +15,96 @@ import re
 logger = logging.getLogger(__name__)
 
 
+def create_service_override(override_dir, override_content):
+    """
+    Creates a systemd service override file to modify service behavior.
+
+    Args:
+        override_dir: Path to the service override directory (e.g., /etc/systemd/system/netbox.service.d)
+        override_content: Content to write to the override.conf file
+
+    Returns:
+        True if override created successfully, False otherwise
+    """
+    override_file = os.path.join(override_dir, "override.conf")
+
+    logger.info(f"Creating systemd override: {override_file}")
+
+    try:
+        # Create override directory if it doesn't exist
+        os.makedirs(override_dir, exist_ok=True)
+
+        # Write the override file
+        with open(override_file, 'w') as f:
+            f.write(override_content)
+
+        logger.info(f"Service override created: {override_file}")
+        return True
+
+    except OSError as e:
+        logger.error(f"Failed to create service override: {e}")
+        return False
+
+
+def create_sudoers_file(sudoers_file, sudoers_content):
+    """
+    Creates a sudoers file with proper permissions for DNS script execution.
+
+    Args:
+        sudoers_file: Path to the sudoers file to create
+        sudoers_content: Content to write to the sudoers file
+
+    Returns:
+        True if sudoers file created successfully, False otherwise
+    """
+    logger.info(f"Creating sudoers file: {sudoers_file}")
+
+    try:
+        # Write the sudoers file
+        with open(sudoers_file, 'w') as f:
+            f.write(sudoers_content)
+
+        # Set proper permissions (0440 - read only for root and root group)
+        os.chmod(sudoers_file, 0o440)
+
+        logger.info(f"Sudoers file created with permissions 0440: {sudoers_file}")
+        return True
+
+    except OSError as e:
+        logger.error(f"Failed to create sudoers file: {e}")
+        return False
+
+
+def reload_systemd():
+    """
+    Reloads the systemd daemon to apply service override changes.
+
+    Returns:
+        True if reload succeeded, False otherwise
+    """
+    logger.info("Reloading systemd daemon")
+
+    try:
+        command = ["systemctl", "daemon-reload"]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode == 0:
+            logger.info("Systemd daemon reloaded successfully")
+            return True
+        else:
+            logger.error(f"Failed to reload systemd daemon: {result.stderr}")
+            return False
+
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to execute systemctl daemon-reload: {e}")
+        return False
+
+
 def create_shared_directory(shared_dir, user, group, mode):
     """
     Creates the IPDNS shared directory with proper ownership and permissions.
@@ -269,10 +359,13 @@ def configure_global_variables(plugins_path, ipdns_config):
         return False
 
 
-def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, user, group):
+def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, user, group,
+                  netbox_override_dir, rqworker_override_dir, service_override_content,
+                  sudoers_file, sudoers_content):
     """
     Main entry point for netbox-ipdns plugin installation.
-    Clones the plugin repository, configures global_variables.py, and creates shared directory.
+    Clones the plugin repository, configures global_variables.py, creates shared directory,
+    sets up systemd overrides, and configures sudoers permissions.
 
     Args:
         repo_url: SSH URL of the netbox-ipdns repository
@@ -282,6 +375,11 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
         dir_mode: Permission mode for the shared directory
         user: Username for shared directory ownership
         group: Group name for shared directory ownership
+        netbox_override_dir: Path to netbox service override directory
+        rqworker_override_dir: Path to netbox-rqworker service override directory
+        service_override_content: Content for the systemd override files
+        sudoers_file: Path to the sudoers file to create
+        sudoers_content: Content for the sudoers file
 
     Returns:
         True if installation succeeded, False otherwise
@@ -313,6 +411,26 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
     # Configure global_variables.py with environment values
     if not configure_global_variables(plugins_path, ipdns_config):
         logger.error("Failed to configure global_variables.py")
+        return False
+
+    # Create systemd override for netbox service
+    if not create_service_override(netbox_override_dir, service_override_content):
+        logger.error("Failed to create netbox service override")
+        return False
+
+    # Create systemd override for netbox-rqworker service
+    if not create_service_override(rqworker_override_dir, service_override_content):
+        logger.error("Failed to create netbox-rqworker service override")
+        return False
+
+    # Reload systemd to apply override changes
+    if not reload_systemd():
+        logger.error("Failed to reload systemd daemon")
+        return False
+
+    # Create sudoers file for DNS script permissions
+    if not create_sudoers_file(sudoers_file, sudoers_content):
+        logger.error("Failed to create sudoers file")
         return False
 
     logger.info("=" * 60)

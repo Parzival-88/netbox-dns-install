@@ -201,6 +201,25 @@ IPDNS_DIR_MODE = 0o755
 IPDNS_USER = "netbox"
 IPDNS_GROUP = "netbox"
 
+# Systemd service override directories
+NETBOX_SERVICE_OVERRIDE_DIR = "/etc/systemd/system/netbox.service.d"
+NETBOX_RQWORKER_OVERRIDE_DIR = "/etc/systemd/system/netbox-rqworker@.service.d"
+
+# Systemd override content to allow privilege escalation for DNS scripts
+IPDNS_SERVICE_OVERRIDE_CONTENT = """[Service]
+NoNewPrivileges=no
+"""
+
+# Sudoers file for netbox-ipdns DNS script permissions
+IPDNS_SUDOERS_FILE = "/etc/sudoers.d/netbox-dns-script"
+
+# Sudoers rules for netbox user to run DNS management commands
+IPDNS_SUDOERS_CONTENT = """netbox ALL=(root) NOPASSWD: /usr/bin/python3 /opt/netbox/current/netbox/plugins/netbox-ipdns/netbox_ipdns/scripts/dns/zone_config_management.py *
+netbox ALL=(root) NOPASSWD: /usr/sbin/named-checkconf
+netbox ALL=(root) NOPASSWD: /usr/sbin/named-checkzone
+netbox ALL=(root) NOPASSWD: /usr/bin/systemctl reload named-chroot
+"""
+
 # =============================================================================
 # OctoDNS Configuration
 # =============================================================================

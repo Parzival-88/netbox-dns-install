@@ -252,7 +252,12 @@ def run_ipdns_install(logger):
         shared_dir=config.IPDNS_SHARED_DIR,
         dir_mode=config.IPDNS_DIR_MODE,
         user=config.IPDNS_USER,
-        group=config.IPDNS_GROUP
+        group=config.IPDNS_GROUP,
+        netbox_override_dir=config.NETBOX_SERVICE_OVERRIDE_DIR,
+        rqworker_override_dir=config.NETBOX_RQWORKER_OVERRIDE_DIR,
+        service_override_content=config.IPDNS_SERVICE_OVERRIDE_CONTENT,
+        sudoers_file=config.IPDNS_SUDOERS_FILE,
+        sudoers_content=config.IPDNS_SUDOERS_CONTENT
     )
 
 
