@@ -144,6 +144,7 @@ BIND_MANAGED_DIRECTORIES = [
     "/var/named/chroot/etc/archived/reverse",
     "/var/named/chroot/etc/backups",
     "/var/named/chroot/var/named/log",
+    "/var/named/chroot/var/named/dynamic",
     "/var/named/chroot/etc/third-party-dns",
 ]
 
@@ -152,6 +153,12 @@ BIND_DIR_MODE = 0o755
 
 # Primary BIND config source directory name
 BIND_PRIMARY_CONFIG_DIR = "netbox-primary"
+
+# Source directory for named.* zone hint files
+BIND_SOURCE_NAMED_FILES = "/var/named/"
+
+# Destination directory for named.* zone hint files in chroot
+BIND_DEST_NAMED_FILES = "/var/named/chroot/var/named/"
 
 # =============================================================================
 # NetBox IPDNS Plugin Settings

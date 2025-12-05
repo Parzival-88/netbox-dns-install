@@ -183,6 +183,8 @@ def run_dns_install(logger, is_primary=False, secondary_ip=None):
         bind_user=config.BIND_USER,
         bind_group=config.BIND_GROUP,
         bind_service=config.BIND_SERVICE,
+        source_named_files=config.BIND_SOURCE_NAMED_FILES,
+        dest_named_files=config.BIND_DEST_NAMED_FILES,
         primary_ip=primary_ip,
         secondary_ip=secondary_ip
     )

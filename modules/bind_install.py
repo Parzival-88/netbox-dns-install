@@ -109,6 +109,52 @@ def create_log_directory(log_path):
         return False
 
 
+def copy_named_files(source_dir, dest_dir):
+    """
+    Copies named.* zone hint files from source to destination directory.
+
+    Args:
+        source_dir: Source directory containing named.* files (e.g., /var/named/)
+        dest_dir: Destination directory in chroot (e.g., /var/named/chroot/var/named/)
+
+    Returns:
+        True if files copied successfully, False otherwise
+    """
+    import glob
+
+    logger.info(f"Copying named.* files from {source_dir} to {dest_dir}")
+
+    # Find all named.* files in source directory
+    pattern = os.path.join(source_dir, "named.*")
+    named_files = glob.glob(pattern)
+
+    if not named_files:
+        logger.warning(f"No named.* files found in {source_dir}")
+        return True
+
+    # Ensure destination directory exists
+    if not os.path.exists(dest_dir):
+        try:
+            os.makedirs(dest_dir, exist_ok=True)
+        except OSError as e:
+            logger.error(f"Failed to create destination directory {dest_dir}: {e}")
+            return False
+
+    success = True
+    for src_file in named_files:
+        filename = os.path.basename(src_file)
+        dest_file = os.path.join(dest_dir, filename)
+
+        try:
+            shutil.copy2(src_file, dest_file)
+            logger.info(f"Copied: {filename}")
+        except (shutil.Error, OSError) as e:
+            logger.error(f"Failed to copy {src_file} to {dest_file}: {e}")
+            success = False
+
+    return success
+
+
 def copy_config_files(source_dir, dest_dir, primary_ip=None):
     """
     Copies BIND configuration files from source to destination.
@@ -319,7 +365,8 @@ def enable_and_start_service(service_name):
 
 def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
                 chroot_log, etc_directories, managed_directories, dir_mode,
-                bind_user, bind_group, bind_service, primary_ip=None, secondary_ip=None):
+                bind_user, bind_group, bind_service, source_named_files,
+                dest_named_files, primary_ip=None, secondary_ip=None):
     """
     Main entry point for BIND DNS installation.
     Orchestrates the complete installation and configuration process.
@@ -336,6 +383,8 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
         bind_user: User for ownership
         bind_group: Group for ownership
         bind_service: Name of systemd service
+        source_named_files: Source directory for named.* files
+        dest_named_files: Destination directory for named.* files in chroot
         primary_ip: IP address for primary DNS server (mutually exclusive with secondary_ip)
         secondary_ip: IP address for secondary DNS server config lookup
 
@@ -370,7 +419,21 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
         logger.error("Failed to create log directory")
         return False
 
-    # Step 4: Copy configuration files based on primary or secondary
+    # Step 4: Create dynamic directory for DNSSEC keys
+    dynamic_dir = os.path.join(dest_named_files, "dynamic")
+    logger.info(f"Creating dynamic directory: {dynamic_dir}")
+    try:
+        os.makedirs(dynamic_dir, exist_ok=True)
+    except OSError as e:
+        logger.error(f"Failed to create dynamic directory: {e}")
+        return False
+
+    # Step 5: Copy named.* zone hint files to chroot
+    if not copy_named_files(source_named_files, dest_named_files):
+        logger.error("Failed to copy named.* files")
+        return False
+
+    # Step 6: Copy configuration files based on primary or secondary
     if primary_ip:
         # Primary install: copy from netbox-primary and update ACL with IP
         source_dir = os.path.join(configs_path, primary_config_dir)
@@ -390,26 +453,26 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
             logger.error("Failed to copy secondary configuration files")
             return False
 
-    # Step 5: Add netbox user to named group
+    # Step 7: Add netbox user to named group
     if not add_user_to_group("netbox", bind_group):
         logger.warning("Failed to add netbox user to named group - user may not exist yet")
 
-    # Step 6: Set ownership on all managed directories
+    # Step 8: Set ownership on all managed directories
     if not set_ownership(managed_directories, bind_user, bind_group):
         logger.error("Failed to set directory ownership")
         return False
 
-    # Step 7: Set permissions on all managed directories
+    # Step 9: Set permissions on all managed directories
     if not set_permissions(managed_directories, dir_mode):
         logger.error("Failed to set directory permissions")
         return False
 
-    # Step 8: Set SGID bit on all managed directories
+    # Step 10: Set SGID bit on all managed directories
     if not set_sgid(managed_directories):
         logger.error("Failed to set SGID on directories")
         return False
 
-    # Step 9: Enable and start the named-chroot service
+    # Step 11: Enable and start the named-chroot service
     if not enable_and_start_service(bind_service):
         logger.error("Failed to enable/start BIND service")
         return False
