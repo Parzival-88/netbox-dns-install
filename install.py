@@ -16,6 +16,7 @@ import config
 from modules import pip_dependencies
 from modules import bind_install
 from modules import octodns_install
+from modules import ipdns_install
 
 
 def setup_logging():
@@ -56,6 +57,9 @@ Examples:
 
   # Install OctoDNS configuration
   python3 install.py --octodns
+
+  # Install netbox-ipdns plugin
+  python3 install.py --ipdns
 
   # Install pip packages and DNS together
   python3 install.py --pip-packages --dns --primary
@@ -101,6 +105,13 @@ Examples:
         help="Install and configure OctoDNS with config.yaml"
     )
 
+    # netbox-ipdns plugin install module
+    parser.add_argument(
+        "--ipdns",
+        action="store_true",
+        help="Install netbox-ipdns plugin from git repository"
+    )
+
     # Install all modules
     parser.add_argument(
         "--all",
@@ -118,7 +129,7 @@ Examples:
             parser.error("Cannot specify both --primary and --secondary")
 
     # Check if no modules selected
-    if not args.pip_packages and not args.dns and not args.octodns and not args.all:
+    if not args.pip_packages and not args.dns and not args.octodns and not args.ipdns and not args.all:
         parser.error("No installation module selected. Use --help for options.")
 
     return args
@@ -205,6 +216,26 @@ def run_octodns_install(logger):
     )
 
 
+def run_ipdns_install(logger):
+    """
+    Executes the netbox-ipdns plugin installation module.
+
+    Args:
+        logger: Logger instance for output
+
+    Returns:
+        True if successful, False otherwise
+    """
+    logger.info("=" * 60)
+    logger.info("Module: netbox-ipdns Plugin Installation")
+    logger.info("=" * 60)
+
+    return ipdns_install.install_ipdns(
+        repo_url=config.NETBOX_IPDNS_REPO,
+        plugins_path=config.PLUGINS_PATH
+    )
+
+
 def main():
     """
     Main entry point for the installer.
@@ -228,6 +259,7 @@ def main():
     run_pip = args.pip_packages or args.all
     run_dns = args.dns or args.all
     run_octodns = args.octodns or args.all
+    run_ipdns = args.ipdns or args.all
 
     # Execute pip packages module
     if run_pip:
@@ -245,6 +277,12 @@ def main():
     if run_octodns:
         if not run_octodns_install(logger):
             logger.error("Failed to install OctoDNS")
+            success = False
+
+    # Execute netbox-ipdns plugin install module
+    if run_ipdns:
+        if not run_ipdns_install(logger):
+            logger.error("Failed to install netbox-ipdns plugin")
             success = False
 
     # Final status report
