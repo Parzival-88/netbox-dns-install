@@ -60,7 +60,6 @@ options {
         // HIGH ZONE COUNT TUNING
         // ============================================
         serial-query-rate 100;
-        loading-soa-check no;
         querylog no;
 
         // ============================================
