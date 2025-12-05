@@ -220,6 +220,22 @@ netbox ALL=(root) NOPASSWD: /usr/sbin/named-checkzone
 netbox ALL=(root) NOPASSWD: /usr/bin/systemctl reload named-chroot
 """
 
+# NetBox services to stop/start during IPDNS installation
+NETBOX_SERVICES = [
+    "netbox",
+    "netbox-rqworker@1",
+    "netbox.socket",
+]
+
+# Logging configuration for NetBox with netbox-ipdns support
+IPDNS_LOGGING_CONFIG = r'''{"version": 1, "disable_existing_loggers": false, "formatters": {"verbose": {"format": "[{asctime}] {levelname} {name} {module} {process:d} {thread:d} - {message}", "style": "{"}, "simple": {"format": "{levelname}: {message}", "style": "{"}}, "handlers": {"file": {"level": "INFO", "class": "logging.FileHandler", "filename": "/opt/netbox/netbox/logs/debug.log", "formatter": "verbose"}, "console": {"level": "INFO", "class": "logging.StreamHandler", "formatter": "simple"}, "netbox_ipdns_file": {"level": "DEBUG", "class": "logging.FileHandler", "filename": "/opt/netbox/netbox/logs/netbox-ipdns.log", "formatter": "verbose"}, "netbox_ipdns_console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"}}, "root": {"handlers": ["file", "console"], "level": "DEBUG"}, "loggers": {"django": {"handlers": ["file"], "level": "INFO", "propagate": true}, "netbox": {"handlers": ["file"], "level": "INFO", "propagate": false}, "django.request": {"handlers": ["file"], "level": "INFO", "propagate": false}, "django.db.backends": {"handlers": ["file"], "level": "INFO", "propagate": false}, "netbox_ipdns": {"handlers": ["netbox_ipdns_file", "netbox_ipdns_console"], "level": "DEBUG", "propagate": false}}}'''
+
+# Plugins list for NetBox configuration
+IPDNS_PLUGINS_LIST = r'''["netbox_dns", "netbox_ipdns", "netbox_lists"]'''
+
+# Plugins configuration for NetBox
+IPDNS_PLUGINS_CONFIG_SETTINGS = r'''{"netbox_dns": {"feature_ipam_coupling": true, "ipam_coupling_ip_address_status_list": ["active", "dhcp", "slaac"], "zone_nameservers": ["tucdns-att-02.stglabs.ibm.com", "pokdns-att-01.stglabs.ibm.com", "tucdns-att-01.stglabs.ibm.com", "pokdns-att-02.stglabs.ibm.com"], "zone_soa_mname": "pokdns01.stglabs.ibm.com", "zone_soa_rname": "sgn-netbox.ibm.com", "zone_soa_refresh": 28800, "zone_soa_retry": 7200, "zone_soa_expire": 604800, "zone_soa_minimum": 3600, "soa_serial_auto": true, "enforce_unique_records": false}, "netbox_acls": {"top_level_menu": true}}'''
+
 # =============================================================================
 # OctoDNS Configuration
 # =============================================================================

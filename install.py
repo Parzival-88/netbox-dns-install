@@ -257,7 +257,14 @@ def run_ipdns_install(logger):
         rqworker_override_dir=config.NETBOX_RQWORKER_OVERRIDE_DIR,
         service_override_content=config.IPDNS_SERVICE_OVERRIDE_CONTENT,
         sudoers_file=config.IPDNS_SUDOERS_FILE,
-        sudoers_content=config.IPDNS_SUDOERS_CONTENT
+        sudoers_content=config.IPDNS_SUDOERS_CONTENT,
+        services=config.NETBOX_SERVICES,
+        netbox_config_file=config.NETBOX_CONFIG,
+        logging_config=config.IPDNS_LOGGING_CONFIG,
+        plugins_list=config.IPDNS_PLUGINS_LIST,
+        plugins_config_settings=config.IPDNS_PLUGINS_CONFIG_SETTINGS,
+        python_path=config.PYTHON_PATH,
+        manage_py=config.MANAGE_PY
     )
 
 

@@ -15,6 +15,85 @@ import re
 logger = logging.getLogger(__name__)
 
 
+def stop_services(services):
+    """
+    Stops the specified systemd services.
+
+    Args:
+        services: List of service names to stop
+
+    Returns:
+        True if all services stopped successfully, False otherwise
+    """
+    logger.info("Stopping NetBox services...")
+
+    for service in services:
+        logger.info(f"Stopping {service}...")
+        try:
+            command = ["systemctl", "stop", service]
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                check=False
+            )
+
+            if result.returncode == 0:
+                logger.info(f"Service {service} stopped")
+            else:
+                # Log warning but continue - service may not be running
+                logger.warning(f"Could not stop {service}: {result.stderr}")
+
+        except subprocess.SubprocessError as e:
+            logger.error(f"Failed to stop {service}: {e}")
+            return False
+
+    logger.info("All services stopped")
+    return True
+
+
+def start_services(services):
+    """
+    Starts the specified systemd services in reverse order.
+    Socket should be started before the main service.
+
+    Args:
+        services: List of service names to start (will be reversed)
+
+    Returns:
+        True if all services started successfully, False otherwise
+    """
+    logger.info("Starting NetBox services...")
+
+    # Start in reverse order: socket first, then main services
+    start_order = ["netbox.socket", "netbox", "netbox-rqworker@1"]
+
+    for service in start_order:
+        if service in services:
+            logger.info(f"Starting {service}...")
+            try:
+                command = ["systemctl", "start", service]
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+
+                if result.returncode == 0:
+                    logger.info(f"Service {service} started")
+                else:
+                    logger.error(f"Failed to start {service}: {result.stderr}")
+                    return False
+
+            except subprocess.SubprocessError as e:
+                logger.error(f"Failed to start {service}: {e}")
+                return False
+
+    logger.info("All services started")
+    return True
+
+
 def create_service_override(override_dir, override_content):
     """
     Creates a systemd service override file to modify service behavior.
@@ -43,6 +122,150 @@ def create_service_override(override_dir, override_content):
 
     except OSError as e:
         logger.error(f"Failed to create service override: {e}")
+        return False
+
+
+def update_netbox_configuration(config_file, logging_config, plugins_list, plugins_config):
+    """
+    Updates the NetBox configuration.py file with IPDNS logging and plugin settings.
+
+    Args:
+        config_file: Path to the NetBox configuration.py file
+        logging_config: JSON string for LOGGING configuration
+        plugins_list: JSON string for PLUGINS list
+        plugins_config: JSON string for PLUGINS_CONFIG
+
+    Returns:
+        True if configuration updated successfully, False otherwise
+    """
+    logger.info(f"Updating NetBox configuration: {config_file}")
+
+    try:
+        # Read the current configuration file
+        with open(config_file, 'r') as f:
+            content = f.read()
+
+        # Replace LOGGING configuration
+        content = re.sub(
+            r'^LOGGING\s*=.*$',
+            f"LOGGING = json.loads(r'''{logging_config}''')",
+            content,
+            flags=re.MULTILINE
+        )
+
+        # Replace PLUGINS configuration
+        content = re.sub(
+            r'^PLUGINS\s*=.*$',
+            f"PLUGINS = json.loads(r'''{plugins_list}''')",
+            content,
+            flags=re.MULTILINE
+        )
+
+        # Replace PLUGINS_CONFIG configuration
+        content = re.sub(
+            r'^PLUGINS_CONFIG\s*=.*$',
+            f"PLUGINS_CONFIG = json.loads(r'''{plugins_config}''')",
+            content,
+            flags=re.MULTILINE
+        )
+
+        # Ensure json import exists at the top of the file
+        if 'import json' not in content:
+            # Add import after the first line or at the beginning
+            if content.startswith('#'):
+                # Find end of initial comments/docstrings
+                lines = content.split('\n')
+                insert_idx = 0
+                for i, line in enumerate(lines):
+                    if line and not line.startswith('#'):
+                        insert_idx = i
+                        break
+                lines.insert(insert_idx, 'import json')
+                content = '\n'.join(lines)
+            else:
+                content = 'import json\n' + content
+
+        # Write the updated configuration
+        with open(config_file, 'w') as f:
+            f.write(content)
+
+        logger.info("NetBox configuration updated successfully")
+        return True
+
+    except (OSError, IOError) as e:
+        logger.error(f"Failed to update NetBox configuration: {e}")
+        return False
+
+
+def run_migrations(python_path, manage_py):
+    """
+    Runs Django migrations for netbox_ipdns plugin.
+
+    Args:
+        python_path: Path to the Python executable in the virtual environment
+        manage_py: Path to the Django manage.py script
+
+    Returns:
+        True if migrations ran successfully, False otherwise
+    """
+    logger.info("Running database migrations for netbox_ipdns...")
+
+    try:
+        command = [python_path, manage_py, "migrate", "netbox_ipdns", "--no-input"]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode == 0:
+            logger.info("Migrations completed successfully")
+            if result.stdout:
+                logger.debug(result.stdout)
+            return True
+        else:
+            logger.error(f"Migrations failed: {result.stderr}")
+            return False
+
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to run migrations: {e}")
+        return False
+
+
+def run_collectstatic(python_path, manage_py):
+    """
+    Runs Django collectstatic command to gather static files.
+
+    Args:
+        python_path: Path to the Python executable in the virtual environment
+        manage_py: Path to the Django manage.py script
+
+    Returns:
+        True if collectstatic ran successfully, False otherwise
+    """
+    logger.info("Running collectstatic...")
+
+    try:
+        command = [python_path, manage_py, "collectstatic", "--clear", "--no-input"]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode == 0:
+            logger.info("Collectstatic completed successfully")
+            if result.stdout:
+                logger.debug(result.stdout)
+            return True
+        else:
+            logger.error(f"Collectstatic failed: {result.stderr}")
+            return False
+
+    except subprocess.SubprocessError as e:
+        logger.error(f"Failed to run collectstatic: {e}")
         return False
 
 
@@ -361,11 +584,14 @@ def configure_global_variables(plugins_path, ipdns_config):
 
 def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, user, group,
                   netbox_override_dir, rqworker_override_dir, service_override_content,
-                  sudoers_file, sudoers_content):
+                  sudoers_file, sudoers_content, services, netbox_config_file,
+                  logging_config, plugins_list, plugins_config_settings,
+                  python_path, manage_py):
     """
     Main entry point for netbox-ipdns plugin installation.
-    Clones the plugin repository, configures global_variables.py, creates shared directory,
-    sets up systemd overrides, and configures sudoers permissions.
+    Stops services, clones the plugin repository, configures global_variables.py,
+    creates shared directory, sets up systemd overrides, configures sudoers permissions,
+    updates NetBox configuration, runs migrations, and starts services.
 
     Args:
         repo_url: SSH URL of the netbox-ipdns repository
@@ -380,6 +606,13 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
         service_override_content: Content for the systemd override files
         sudoers_file: Path to the sudoers file to create
         sudoers_content: Content for the sudoers file
+        services: List of NetBox services to stop/start
+        netbox_config_file: Path to NetBox configuration.py
+        logging_config: JSON string for LOGGING configuration
+        plugins_list: JSON string for PLUGINS list
+        plugins_config_settings: JSON string for PLUGINS_CONFIG
+        python_path: Path to the Python executable
+        manage_py: Path to Django manage.py
 
     Returns:
         True if installation succeeded, False otherwise
@@ -391,6 +624,11 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
     # Verify plugins directory exists
     if not os.path.exists(plugins_path):
         logger.error(f"Plugins directory does not exist: {plugins_path}")
+        return False
+
+    # Stop NetBox services before making changes
+    if not stop_services(services):
+        logger.error("Failed to stop NetBox services")
         return False
 
     # Create shared directory with proper ownership and permissions
@@ -431,6 +669,27 @@ def install_ipdns(repo_url, plugins_path, ipdns_config, shared_dir, dir_mode, us
     # Create sudoers file for DNS script permissions
     if not create_sudoers_file(sudoers_file, sudoers_content):
         logger.error("Failed to create sudoers file")
+        return False
+
+    # Update NetBox configuration.py with IPDNS settings
+    if not update_netbox_configuration(netbox_config_file, logging_config,
+                                        plugins_list, plugins_config_settings):
+        logger.error("Failed to update NetBox configuration")
+        return False
+
+    # Run database migrations for netbox_ipdns
+    if not run_migrations(python_path, manage_py):
+        logger.error("Failed to run database migrations")
+        return False
+
+    # Run collectstatic to gather static files
+    if not run_collectstatic(python_path, manage_py):
+        logger.error("Failed to run collectstatic")
+        return False
+
+    # Start NetBox services after installation
+    if not start_services(services):
+        logger.error("Failed to start NetBox services")
         return False
 
     logger.info("=" * 60)
