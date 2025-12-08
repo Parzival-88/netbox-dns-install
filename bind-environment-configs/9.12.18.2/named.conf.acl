@@ -1,5 +1,5 @@
 // Access Control Lists
-// Secondary Server: 9.5.175.8
+// Secondary Server: 9.12.18.2
 
 acl "primary-ns" {
         9.12.46.13;
@@ -11,8 +11,8 @@ acl "secondary-ns" {
         9.11.227.25;
         9.11.227.26;
         9.3.1.200;
+        9.5.175.8;
         9.12.16.2;
-        9.12.18.2;
 };
 
 acl "internal-networks" {

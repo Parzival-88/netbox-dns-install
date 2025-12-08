@@ -1,0 +1,10 @@
+// RNDC Controls Configuration
+// Secondary Server: 9.12.18.2
+
+controls {
+        inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
+};
+
+statistics-channels {
+        inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+};

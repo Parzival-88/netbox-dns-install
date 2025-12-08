@@ -1,0 +1,156 @@
+// Named Logging Configuration
+// Secondary Server - Hybrid Mode (Auth + Recursive)
+// Optimized for high-volume server
+
+logging {
+        // ============================================
+        // CRITICAL CHANNELS
+        // ============================================
+
+        // Zone transfers - critical for primary-secondary sync
+        channel zone_transfers_log {
+                file "/var/named/log/zone_transfers" versions 10 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Security audit
+        channel security_audit_log {
+                file "/var/named/log/security_audit" versions 10 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // Rate limiting - DDoS detection
+        channel rate_limiting_log {
+                file "/var/named/log/rate_limiting" versions 5 size 500m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // RESOLVER CHANNELS (for recursive queries)
+        // ============================================
+
+        channel resolver_log {
+                file "/var/named/log/resolver" versions 5 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // OPERATIONAL CHANNELS
+        // ============================================
+
+        channel default_log {
+                file "/var/named/log/default" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        channel client_security_log {
+                file "/var/named/log/client_security" versions 5 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        channel dnssec_log {
+                file "/var/named/log/dnssec" versions 3 size 200m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        // ============================================
+        // DEBUGGING CHANNELS
+        // ============================================
+
+        channel queries_log {
+                file "/var/named/log/queries" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity info;
+        };
+
+        channel query-errors_log {
+                file "/var/named/log/query-errors" versions 3 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                severity dynamic;
+        };
+
+        channel default_debug {
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                file "named.run" versions 2 size 100m;
+                severity dynamic;
+        };
+
+        channel default_syslog {
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+                syslog daemon;
+                severity error;
+        };
+
+        channel null_channel {
+                null;
+        };
+
+        // ============================================
+        // CATEGORY MAPPINGS
+        // ============================================
+
+        category default { default_log; default_syslog; };
+        category config { default_log; default_syslog; };
+        category dispatch { default_log; };
+        category network { default_log; };
+        category general { default_log; default_syslog; };
+
+        // Zone transfers - critical
+        category notify { zone_transfers_log; };
+        category xfer-in { zone_transfers_log; };
+        category xfer-out { zone_transfers_log; };
+
+        // Security
+        category client { client_security_log; };
+        category security { security_audit_log; };
+
+        // Rate limiting
+        category rate-limit { rate_limiting_log; };
+        category spill { rate_limiting_log; };
+        category database { rate_limiting_log; };
+
+        // DNSSEC
+        category dnssec { dnssec_log; };
+
+        // Resolver categories (for recursive queries)
+        category resolver { resolver_log; };
+        category cname { resolver_log; };
+        category delegation-only { resolver_log; };
+
+        // Suppress noisy resolver categories
+        category lame-servers { null_channel; };
+        category edns-disabled { null_channel; };
+
+        // Queries - disabled by default
+        category queries { queries_log; };
+        category query-errors { query-errors_log; };
+};

@@ -53,6 +53,18 @@ key "ns-9-5-175-8" {
         secret "gumKzM4lnyXJ0CxP+kywUFIo4Q2+q+MBXrBtnajw19o=";
 };
 
+// Secondary: 9.12.16.2
+key "ns-9-12-16-2" {
+        algorithm hmac-sha256;
+        secret "DYOE6Vi1fCT7Jzk6rvxgTm1n9DZ7QzthsLQY8gsSvsE=";
+};
+
+// Secondary: 9.12.18.2
+key "ns-9-12-18-2" {
+        algorithm hmac-sha256;
+        secret "Z/FR3M5xYfp0+Ij7tvtf64fCJKlIvmaMxP9xNCGenw8=";
+};
+
 // ============================================
 // THIRD-PARTY DNS TSIG KEY
 // ============================================
