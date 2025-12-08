@@ -100,6 +100,21 @@ options {
         query-source address * port *;
 
         include "/etc/crypto-policies/back-ends/bind.config";
+
+        // ============================================
+        // CATALOG ZONES CONSUMER
+        // ============================================
+        // Auto-provision zones from primary catalog zones
+        catalog-zones {
+                zone "dns-catalog-forward.sgn.ibm.com"
+                        default-primaries { 9.12.46.13 key ns-9-5-175-8; }
+                        in-memory no
+                        zone-directory "/etc/zones/forward";
+                zone "dns-catalog-reverse.sgn.ibm.com"
+                        default-primaries { 9.12.46.13 key ns-9-5-175-8; }
+                        in-memory no
+                        zone-directory "/etc/zones/reverse";
+        };
 };
 
 // ============================================
