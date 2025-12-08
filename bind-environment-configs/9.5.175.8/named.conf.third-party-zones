@@ -1,0 +1,405 @@
+// Third-Party Zone Definitions for Secondary Server
+// Location: /etc/named.conf.third-party-zones
+//
+// BIND 9.11 Legacy Syntax Version
+// Zones received from netbox-primary (which pulls from third-party primaries).
+// This server is at the end of the chain - no further transfers allowed.
+// Uses the "netbox" TSIG key for authentication with netbox-primary.
+
+// ============================================
+// HPDCOCP ZONES
+// ============================================
+
+zone "hpdcocp.pok.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/hpdcocp.pok.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "primary.hpdcocp.pok.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/primary.hpdcocp.pok.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+// ============================================
+// TMS PRIVATE DNS ZONES
+// ============================================
+
+zone "tms.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/tms.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "88.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/88.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "89.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/89.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "90.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/90.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "91.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/91.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "148.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/148.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "149.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/149.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "150.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/150.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "151.19.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/151.19.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+// ============================================
+// TUC OPENSHIFT ZONES
+// ============================================
+
+zone "scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "scuttleclaw.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/scuttleclaw.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.scuttleclaw.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.scuttleclaw.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "viserion.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/viserion.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.viserion.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.viserion.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "drogon.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/drogon.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.drogon.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.drogon.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "ghost.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/ghost.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.ghost.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.ghost.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "boglin.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/boglin.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.boglin.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.boglin.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "rhaegal.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/rhaegal.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.rhaegal.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.rhaegal.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "stormfly.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/stormfly.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.stormfly.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.stormfly.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "lightfury.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/lightfury.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.lightfury.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.lightfury.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "chompers.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/chompers.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.chompers.scale-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.chompers.scale-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "226.11.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/226.11.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+// ============================================
+// TUC STORAGE OPENSHIFT ZONES
+// ============================================
+
+zone "storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster1.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster1.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster1.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster1.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster2.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster2.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster2.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster2.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster3.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster3.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster3.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster3.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster4.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster4.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster4.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster4.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster5.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster5.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster5.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster5.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster6.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster6.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster6.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster6.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster7.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster7.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster7.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster7.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "cluster8.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/cluster8.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "apps.cluster8.storage-ocp.tuc.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/apps.cluster8.storage-ocp.tuc.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "221.11.9.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/221.11.9.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+// ============================================
+// ZPERF ZONES
+// ============================================
+
+zone "zpirate.pok.stglabs.ibm.com" {
+        type slave;
+        file "/etc/zones/third-party-dns/zpirate.pok.stglabs.ibm.com.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "8.1.10.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/8.1.10.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "9.1.10.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/9.1.10.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "10.1.10.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/10.1.10.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};
+
+zone "11.1.10.in-addr.arpa" {
+        type slave;
+        file "/etc/zones/third-party-dns/11.1.10.in-addr.arpa.db";
+        masters { $primary_ip key "netbox"; };
+        allow-transfer { none; };
+};

@@ -134,6 +134,7 @@ BIND_ETC_DIRECTORIES = [
     "zones",
     "zones/forward",
     "zones/reverse",
+    "zones/third-party-dns",
     "third-party-dns",
 ]
 
@@ -143,6 +144,7 @@ BIND_MANAGED_DIRECTORIES = [
     "/var/named/chroot/etc/zones",
     "/var/named/chroot/etc/zones/forward",
     "/var/named/chroot/etc/zones/reverse",
+    "/var/named/chroot/etc/zones/third-party-dns",
     "/var/named/chroot/etc/archived",
     "/var/named/chroot/etc/archived/forward",
     "/var/named/chroot/etc/archived/reverse",

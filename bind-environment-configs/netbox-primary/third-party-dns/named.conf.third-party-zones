@@ -1,53 +1,21 @@
-// Third-Party Secondary Zone Definitions
-// Location: /etc/named.conf.third-party-zones
-// Include this in named.conf
+// Third-Party Zone Definitions
+// Location: /etc/third-party-dns/named.conf.third-party-zones
 //
-// These are zones where WE are the SECONDARY, pulling from third-party primaries.
-// TSIG authentication uses the shared "third-party-dns" key.
+// Zones where netbox-primary acts as SECONDARY, pulling from third-party primaries.
+// These zones are then cascaded to our secondary DNS servers.
+// Zone transfers FROM third-party use IP-based authentication (no TSIG).
+// Zone transfers TO our secondaries use their respective TSIG keys.
 
 // ============================================
-// TEMPLATE - Single Primary
+// HPDCOCP ZONES
+// Primary: 9.12.41.249
 // ============================================
-// Use when zone is served by one third-party primary
 
-zone "example-delegated.com" {
+zone "hpdcocp.pok.stglabs.ibm.com" {
         type secondary;
-        file "/var/named/secondaries/example-delegated.com.db";
-        primaries { 10.0.0.1 key "third-party-dns"; };
-        allow-notify { 10.0.0.1; };
-        allow-transfer { none; };  // Don't allow others to pull from us
-        // Uncomment to also serve to your secondaries:
-        // allow-transfer { key "ns-9-12-46-4"; key "ns-9-12-46-5"; ... };
-};
-
-// ============================================
-// TEMPLATE - Multiple Primaries (redundancy)
-// ============================================
-// Use when zone is served by multiple third-party primaries
-
-zone "example-delegated-ha.com" {
-        type secondary;
-        file "/var/named/secondaries/example-delegated-ha.com.db";
-        primaries {
-                10.0.0.1 key "third-party-dns";
-                10.0.0.2 key "third-party-dns";
-        };
-        allow-notify { 10.0.0.1; 10.0.0.2; };
-        allow-transfer { none; };
-};
-
-// ============================================
-// TEMPLATE - Re-serve to Your Secondaries
-// ============================================
-// Use when you need to propagate third-party zones to your own secondaries
-
-zone "example-cascade.com" {
-        type secondary;
-        file "/var/named/secondaries/example-cascade.com.db";
-        primaries { 10.0.0.1 key "third-party-dns"; };
-        allow-notify { 10.0.0.1; };
-        
-        // Allow your secondaries to pull this zone from you
+        file "/etc/zones/third-party-dns/hpdcocp.pok.stglabs.ibm.com.db";
+        primaries { 9.12.41.249; };
+        allow-notify { 9.12.41.249; };
         allow-transfer {
                 key "ns-9-12-46-4";
                 key "ns-9-12-46-5";
@@ -55,9 +23,9 @@ zone "example-cascade.com" {
                 key "ns-9-11-227-26";
                 key "ns-9-3-1-200";
                 key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
         };
-        
-        // Notify your secondaries when zone updates
         notify yes;
         also-notify {
                 9.12.46.4;
@@ -66,18 +34,1511 @@ zone "example-cascade.com" {
                 9.11.227.26;
                 9.3.1.200;
                 9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "primary.hpdcocp.pok.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/primary.hpdcocp.pok.stglabs.ibm.com.db";
+        primaries { 9.12.41.249; };
+        allow-notify { 9.12.41.249; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
         };
 };
 
 // ============================================
-// ACTUAL ZONE DEFINITIONS
+// TMS PRIVATE DNS ZONES
+// Primaries: 9.19.88.14, 9.19.88.15
 // ============================================
-// Add your third-party delegated zones below:
 
-// zone "delegated-zone-1.com" {
-//         type secondary;
-//         file "/var/named/secondaries/delegated-zone-1.com.db";
-//         primaries { 10.0.0.1 key "third-party-dns"; };
-//         allow-notify { 10.0.0.1; };
-//         allow-transfer { none; };
-// };
+zone "tms.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/tms.stglabs.ibm.com.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "88.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/88.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "89.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/89.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "90.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/90.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "91.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/91.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "148.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/148.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "149.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/149.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "150.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/150.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "151.19.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/151.19.9.in-addr.arpa.db";
+        primaries { 9.19.88.14; 9.19.88.15; };
+        allow-notify { 9.19.88.14; 9.19.88.15; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+// ============================================
+// TUC OPENSHIFT ZONES
+// Primary: 9.11.226.254
+// ============================================
+
+zone "scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "scuttleclaw.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/scuttleclaw.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.scuttleclaw.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.scuttleclaw.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "viserion.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/viserion.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.viserion.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.viserion.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "drogon.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/drogon.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.drogon.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.drogon.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "ghost.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/ghost.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.ghost.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.ghost.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "boglin.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/boglin.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.boglin.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.boglin.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "rhaegal.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/rhaegal.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.rhaegal.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.rhaegal.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "stormfly.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/stormfly.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.stormfly.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.stormfly.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "lightfury.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/lightfury.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.lightfury.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.lightfury.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "chompers.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/chompers.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.chompers.scale-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.chompers.scale-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "226.11.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/226.11.9.in-addr.arpa.db";
+        primaries { 9.11.226.254; };
+        allow-notify { 9.11.226.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+// ============================================
+// TUC STORAGE OPENSHIFT ZONES
+// Primary: 9.11.221.254
+// ============================================
+
+zone "storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster1.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster1.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster1.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster1.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster2.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster2.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster2.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster2.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster3.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster3.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster3.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster3.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster4.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster4.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster4.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster4.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster5.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster5.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster5.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster5.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster6.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster6.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster6.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster6.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster7.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster7.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster7.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster7.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "cluster8.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/cluster8.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "apps.cluster8.storage-ocp.tuc.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/apps.cluster8.storage-ocp.tuc.stglabs.ibm.com.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "221.11.9.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/221.11.9.in-addr.arpa.db";
+        primaries { 9.11.221.254; };
+        allow-notify { 9.11.221.254; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+// ============================================
+// ZPERF ZONES
+// Primary: 9.12.43.11
+// ============================================
+
+zone "zpirate.pok.stglabs.ibm.com" {
+        type secondary;
+        file "/etc/zones/third-party-dns/zpirate.pok.stglabs.ibm.com.db";
+        primaries { 9.12.43.11; };
+        allow-notify { 9.12.43.11; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "8.1.10.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/8.1.10.in-addr.arpa.db";
+        primaries { 9.12.43.11; };
+        allow-notify { 9.12.43.11; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "9.1.10.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/9.1.10.in-addr.arpa.db";
+        primaries { 9.12.43.11; };
+        allow-notify { 9.12.43.11; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "10.1.10.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/10.1.10.in-addr.arpa.db";
+        primaries { 9.12.43.11; };
+        allow-notify { 9.12.43.11; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};
+
+zone "11.1.10.in-addr.arpa" {
+        type secondary;
+        file "/etc/zones/third-party-dns/11.1.10.in-addr.arpa.db";
+        primaries { 9.12.43.11; };
+        allow-notify { 9.12.43.11; };
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
+        };
+        notify yes;
+        also-notify {
+                9.12.46.4;
+                9.12.46.5;
+                9.11.227.25;
+                9.11.227.26;
+                9.3.1.200;
+                9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
+        };
+};

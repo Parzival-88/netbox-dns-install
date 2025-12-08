@@ -370,6 +370,36 @@ def update_catalog_file(file_path, primary_ip):
         return False
 
 
+def update_third_party_zones_file(file_path, primary_ip):
+    """
+    Updates the named.conf.third-party-zones file by replacing $primary_ip placeholder.
+    Used for secondary servers to pull third-party zones from the primary DNS server.
+
+    Args:
+        file_path: Path to the named.conf.third-party-zones file
+        primary_ip: IP address of the primary DNS server
+
+    Returns:
+        True if update succeeded, False otherwise
+    """
+    logger.info(f"Updating {file_path} with primary IP: {primary_ip}")
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+
+        # Replace $primary_ip placeholder with actual primary server IP
+        updated_content = content.replace('$primary_ip', primary_ip)
+
+        with open(file_path, 'w') as f:
+            f.write(updated_content)
+
+        logger.info(f"Successfully updated named.conf.third-party-zones with primary IP: {primary_ip}")
+        return True
+    except IOError as e:
+        logger.error(f"Failed to update {file_path}: {e}")
+        return False
+
+
 def add_user_to_group(user, group):
     """
     Adds a user to a specified group.
@@ -597,6 +627,15 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
                     return False
             else:
                 logger.warning(f"Catalog file not found: {catalog_file}")
+
+            # Update third-party zones config with primary server IP
+            third_party_zones_file = os.path.join(chroot_etc, "named.conf.third-party-zones")
+            if os.path.exists(third_party_zones_file):
+                if not update_third_party_zones_file(third_party_zones_file, env_primary_ip):
+                    logger.error("Failed to update third-party zones configuration")
+                    return False
+            else:
+                logger.warning(f"Third-party zones file not found: {third_party_zones_file}")
 
     # Step 7: Add netbox user to named group
     if not add_user_to_group("netbox", bind_group):
