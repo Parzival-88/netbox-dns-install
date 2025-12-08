@@ -70,7 +70,7 @@ options {
         auth-nxdomain no;
         minimal-responses no;
         empty-zones-enable yes;
-        dnssec-validation auto;
+        dnssec-validation no;
 
         // ============================================
         // RATE LIMITING

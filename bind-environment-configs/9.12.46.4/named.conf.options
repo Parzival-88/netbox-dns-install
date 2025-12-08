@@ -80,7 +80,7 @@ options {
         empty-zones-enable yes;   // RFC 1918 empty zones for recursive
 
         // DNSSEC validation for recursive queries
-        dnssec-validation auto;
+        dnssec-validation no;
 
         // ============================================
         // RATE LIMITING
