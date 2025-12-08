@@ -167,9 +167,11 @@ def run_dns_install(logger, is_primary=False, secondary_ip=None):
     Returns:
         True if successful, False otherwise
     """
-    # Get server_ip from environment config for primary installs
+    # Get server_ip from environment config
     env_config = config.get_env_config()
     primary_ip = env_config["server_ip"] if is_primary else None
+    # For secondary installs, pass the environment's primary server IP for catalog zones
+    env_primary_ip = env_config["server_ip"] if secondary_ip else None
 
     return bind_install.install_dns(
         configs_path=config.BIND_CONFIGS_PATH,
@@ -186,7 +188,8 @@ def run_dns_install(logger, is_primary=False, secondary_ip=None):
         source_named_files=config.BIND_SOURCE_NAMED_FILES,
         dest_named_files=config.BIND_DEST_NAMED_FILES,
         primary_ip=primary_ip,
-        secondary_ip=secondary_ip
+        secondary_ip=secondary_ip,
+        env_primary_ip=env_primary_ip
     )
 
 

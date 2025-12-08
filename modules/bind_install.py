@@ -340,6 +340,36 @@ def update_acl_file(file_path, ip_address):
         logger.error(f"Failed to update {file_path}: {e}")
 
 
+def update_catalog_file(file_path, primary_ip):
+    """
+    Updates the named.conf.catalog file by replacing $primary_ip placeholder.
+    Used for secondary servers to point to the primary DNS server.
+
+    Args:
+        file_path: Path to the named.conf.catalog file
+        primary_ip: IP address of the primary DNS server
+
+    Returns:
+        True if update succeeded, False otherwise
+    """
+    logger.info(f"Updating {file_path} with primary IP: {primary_ip}")
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+
+        # Replace $primary_ip placeholder with actual primary server IP
+        updated_content = content.replace('$primary_ip', primary_ip)
+
+        with open(file_path, 'w') as f:
+            f.write(updated_content)
+
+        logger.info(f"Successfully updated named.conf.catalog with primary IP: {primary_ip}")
+        return True
+    except IOError as e:
+        logger.error(f"Failed to update {file_path}: {e}")
+        return False
+
+
 def add_user_to_group(user, group):
     """
     Adds a user to a specified group.
@@ -466,7 +496,8 @@ def enable_and_start_service(service_name):
 def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
                 chroot_log, etc_directories, managed_directories, dir_mode,
                 bind_user, bind_group, bind_service, source_named_files,
-                dest_named_files, primary_ip=None, secondary_ip=None):
+                dest_named_files, primary_ip=None, secondary_ip=None,
+                env_primary_ip=None):
     """
     Main entry point for BIND DNS installation.
     Orchestrates the complete installation and configuration process.
@@ -487,6 +518,7 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
         dest_named_files: Destination directory for named.* files in chroot
         primary_ip: IP address for primary DNS server (mutually exclusive with secondary_ip)
         secondary_ip: IP address for secondary DNS server config lookup
+        env_primary_ip: Primary server IP from environment config (for secondary catalog zones)
 
     Returns:
         True if installation succeeded, False otherwise
@@ -555,6 +587,16 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
         if not copy_config_files(source_dir, chroot_etc, backup_dir):
             logger.error("Failed to copy secondary configuration files")
             return False
+
+        # Update catalog zones config with primary server IP
+        if env_primary_ip:
+            catalog_file = os.path.join(chroot_etc, "named.conf.catalog")
+            if os.path.exists(catalog_file):
+                if not update_catalog_file(catalog_file, env_primary_ip):
+                    logger.error("Failed to update catalog zones configuration")
+                    return False
+            else:
+                logger.warning(f"Catalog file not found: {catalog_file}")
 
     # Step 7: Add netbox user to named group
     if not add_user_to_group("netbox", bind_group):

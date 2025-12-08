@@ -1,0 +1,32 @@
+// Catalog Zones Consumer Configuration
+// Location: /etc/named.conf.catalog
+// Automatically provisions zones advertised by the primary catalog
+
+// Catalog zone consumer directives
+catalog-zones {
+        // Forward zones catalog - auto-provision forward zones
+        zone "dns-catalog-forward.sgn.ibm.com"
+                default-primaries { $primary_ip key netbox; }
+                in-memory no
+                zone-directory "/etc/zones/forward";
+
+        // Reverse zones catalog - auto-provision reverse zones
+        zone "dns-catalog-reverse.sgn.ibm.com"
+                default-primaries { $primary_ip key netbox; }
+                in-memory no
+                zone-directory "/etc/zones/reverse";
+};
+
+// Forward catalog zone as secondary
+zone "dns-catalog-forward.sgn.ibm.com" {
+        type slave;
+        masters { $primary_ip key netbox; };
+        file "/etc/zones/dns-catalog-forward.sgn.ibm.com.db";
+};
+
+// Reverse catalog zone as secondary
+zone "dns-catalog-reverse.sgn.ibm.com" {
+        type slave;
+        masters { $primary_ip key netbox; };
+        file "/etc/zones/dns-catalog-reverse.sgn.ibm.com.db";
+};

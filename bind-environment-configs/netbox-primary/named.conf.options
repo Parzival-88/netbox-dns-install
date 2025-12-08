@@ -24,14 +24,16 @@ options {
         // ============================================
         // AUTHORITATIVE SERVER SETTINGS - NO RECURSION
         // ============================================
-        recursion no;
-        allow-recursion { none; };
+        recursion yes;
+        allow-recursion { localhost; sgn-ns; netbox; };  // Commented for testing
+        //allow-recursion { any; };  // Commented for testing
 
         // ============================================
         // QUERY ACCESS
         // ============================================
         // Allow queries from nameservers, netbox/webservers, and third-party-dns
         allow-query { sgn-ns; netbox; third-party-dns; };
+        //allow-query { any; };
 
         // ============================================
         // ZONE TRANSFER RESTRICTIONS (TSIG Required)
@@ -44,6 +46,7 @@ options {
                 key "ns-9-11-227-26";
                 key "ns-9-3-1-200";
                 key "ns-9-5-175-8";
+                key "netbox";
                 localhost;
         };
 
@@ -104,7 +107,7 @@ options {
         auth-nxdomain no;
 
         // Minimize responses for authoritative server
-        minimal-responses yes;
+        minimal-responses no;
 
         // Disable empty zones (not needed for authoritative)
         empty-zones-enable no;
@@ -146,14 +149,14 @@ options {
         tcp-clients 300;
         tcp-listen-queue 15;
 
-        // Recursive client limits (recursion is off)
-        recursive-clients 0;
+        // Recursive client limits (limited recursion enabled)
+        recursive-clients 100;
 
         // Query source restrictions
         query-source address * port *;
 
         // Include crypto policy
-        include "/etc/crypto-policies/back-ends/bind.config";
+        // include "/etc/crypto-policies/back-ends/bind.config";
 };
 
 // ============================================

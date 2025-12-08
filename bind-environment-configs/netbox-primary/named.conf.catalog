@@ -1,0 +1,35 @@
+// Catalog Zones Configuration
+// Location: /etc/named.conf.catalog
+// Provides automatic zone provisioning to secondary servers
+
+// Forward zones catalog - secondaries auto-provision forward zones from this
+zone "dns-catalog-forward.sgn.ibm.com" {
+        type master;
+        file "/etc/zones/dns-catalog-forward.sgn.ibm.com.db";
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+        };
+        allow-update { key "netbox"; };
+        notify yes;
+};
+
+// Reverse zones catalog - secondaries auto-provision reverse zones from this
+zone "dns-catalog-reverse.sgn.ibm.com" {
+        type master;
+        file "/etc/zones/dns-catalog-reverse.sgn.ibm.com.db";
+        allow-transfer {
+                key "ns-9-12-46-4";
+                key "ns-9-12-46-5";
+                key "ns-9-11-227-25";
+                key "ns-9-11-227-26";
+                key "ns-9-3-1-200";
+                key "ns-9-5-175-8";
+        };
+        allow-update { key "netbox"; };
+        notify yes;
+};

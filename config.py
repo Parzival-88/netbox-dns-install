@@ -163,6 +163,16 @@ BIND_SOURCE_NAMED_FILES = "/var/named/"
 # Destination directory for named.* zone hint files in chroot
 BIND_DEST_NAMED_FILES = "/var/named/chroot/var/named/"
 
+# Catalog zone names for automatic secondary provisioning
+BIND_CATALOG_FORWARD_ZONE = "dns-catalog-forward.sgn.ibm.com"
+BIND_CATALOG_REVERSE_ZONE = "dns-catalog-reverse.sgn.ibm.com"
+
+# Source path for primary catalog zone files within installer
+BIND_PRIMARY_ZONES_DIR = "zones"
+
+# Destination path for catalog zone files in chroot
+BIND_CHROOT_ZONES = "/var/named/chroot/etc/zones/"
+
 # =============================================================================
 # NetBox IPDNS Plugin Settings
 # =============================================================================

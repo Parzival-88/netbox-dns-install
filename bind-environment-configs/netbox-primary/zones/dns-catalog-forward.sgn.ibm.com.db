@@ -1,0 +1,23 @@
+$TTL 3600
+@       IN      SOA     netbox.sgn.ibm.com. sgn-netbox.ibm.com. (
+                        2024010101      ; serial
+                        3600            ; refresh
+                        600             ; retry
+                        86400           ; expire
+                        3600 )          ; minimum
+
+@       IN      NS      netbox.sgn.ibm.com.
+
+; Catalog zone schema version (required)
+version IN      TXT     "2"
+
+; ============================================
+; FORWARD ZONE MEMBERS
+; ============================================
+; Format: <unique-id>.zones IN PTR <zone-name>.
+; Zone files stored in /etc/zones/forward/ with .hosts extension
+;
+; Example - to add example.sgn.ibm.com:
+; a1b2c3d4.zones        IN      PTR     example.sgn.ibm.com.
+;
+; NetBox will manage entries below this line
