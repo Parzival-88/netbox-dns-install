@@ -46,6 +46,8 @@ options {
                 key "ns-9-11-227-26";
                 key "ns-9-3-1-200";
                 key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
                 key "netbox";
                 localhost;
         };
@@ -64,6 +66,8 @@ options {
                 9.11.227.26;
                 9.3.1.200;
                 9.5.175.8;
+                9.12.16.2;
+                9.12.18.2;
         };
 
         // Accept notify messages from third-party primaries (we are secondary for their zones)
@@ -191,5 +195,15 @@ server 9.3.1.200 {
 
 server 9.5.175.8 {
         keys { "ns-9-5-175-8"; };
+        transfer-format many-answers;
+};
+
+server 9.12.16.2 {
+        keys { "ns-9-12-16-2"; };
+        transfer-format many-answers;
+};
+
+server 9.12.18.2 {
+        keys { "ns-9-12-18-2"; };
         transfer-format many-answers;
 };

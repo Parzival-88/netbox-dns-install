@@ -13,6 +13,8 @@ zone "dns-catalog-forward.sgn.ibm.com" {
                 key "ns-9-11-227-26";
                 key "ns-9-3-1-200";
                 key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
         };
         allow-update { key "netbox"; };
         notify yes;
@@ -29,6 +31,8 @@ zone "dns-catalog-reverse.sgn.ibm.com" {
                 key "ns-9-11-227-26";
                 key "ns-9-3-1-200";
                 key "ns-9-5-175-8";
+                key "ns-9-12-16-2";
+                key "ns-9-12-18-2";
         };
         allow-update { key "netbox"; };
         notify yes;
