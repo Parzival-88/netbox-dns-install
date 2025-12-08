@@ -1,17 +1,17 @@
 // Catalog Zone Definitions
-// Secondary Server: 9.5.175.8
+// Secondary Server: 9.5.175.8 (BIND 9.11 - uses legacy syntax)
 // These zones contain the catalog of all zones to be provisioned
 
 // Forward catalog zone - lists all forward zones
 zone "dns-catalog-forward.sgn.ibm.com" {
-        type secondary;
-        primaries { 9.12.46.13 key ns-9-5-175-8; };
+        type slave;
+        masters { 9.12.46.13 key ns-9-5-175-8; };
         file "/etc/zones/dns-catalog-forward.sgn.ibm.com.db";
 };
 
 // Reverse catalog zone - lists all reverse zones
 zone "dns-catalog-reverse.sgn.ibm.com" {
-        type secondary;
-        primaries { 9.12.46.13 key ns-9-5-175-8; };
+        type slave;
+        masters { 9.12.46.13 key ns-9-5-175-8; };
         file "/etc/zones/dns-catalog-reverse.sgn.ibm.com.db";
 };
