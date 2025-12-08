@@ -4,7 +4,7 @@
 
 // Forward zones catalog - secondaries auto-provision forward zones from this
 zone "dns-catalog-forward.sgn.ibm.com" {
-        type master;
+        type primary;
         file "/etc/zones/dns-catalog-forward.sgn.ibm.com.db";
         allow-transfer {
                 key "ns-9-12-46-4";
@@ -22,7 +22,7 @@ zone "dns-catalog-forward.sgn.ibm.com" {
 
 // Reverse zones catalog - secondaries auto-provision reverse zones from this
 zone "dns-catalog-reverse.sgn.ibm.com" {
-        type master;
+        type primary;
         file "/etc/zones/dns-catalog-reverse.sgn.ibm.com.db";
         allow-transfer {
                 key "ns-9-12-46-4";
