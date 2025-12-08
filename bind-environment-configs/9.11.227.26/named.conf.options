@@ -107,11 +107,11 @@ options {
         // Auto-provision zones from primary catalog zones
         catalog-zones {
                 zone "dns-catalog-forward.sgn.ibm.com"
-                        default-primaries { 9.12.46.13 key ns-9-11-227-26; }
+                        default-masters { 9.12.46.13 key ns-9-11-227-26; }
                         in-memory no
                         zone-directory "/etc/zones/forward";
                 zone "dns-catalog-reverse.sgn.ibm.com"
-                        default-primaries { 9.12.46.13 key ns-9-11-227-26; }
+                        default-masters { 9.12.46.13 key ns-9-11-227-26; }
                         in-memory no
                         zone-directory "/etc/zones/reverse";
         };
