@@ -49,19 +49,101 @@ def run_command(command, description):
         return False
 
 
+def backup_file(file_path, backup_dir):
+    """
+    Creates a backup of an existing file with a timestamp suffix.
+    Backs up to the specified backup directory.
+
+    Args:
+        file_path: Full path to the file to backup
+        backup_dir: Directory where backup should be stored
+
+    Returns:
+        True if backup succeeded or file doesn't exist, False on error
+    """
+    from datetime import datetime
+
+    # Skip if file doesn't exist
+    if not os.path.exists(file_path):
+        return True
+
+    # Generate timestamp suffix for backup filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = os.path.basename(file_path)
+    backup_filename = f"{filename}.{timestamp}"
+    backup_path = os.path.join(backup_dir, backup_filename)
+
+    # Ensure backup directory exists
+    if not os.path.exists(backup_dir):
+        try:
+            os.makedirs(backup_dir, exist_ok=True)
+        except OSError as e:
+            logger.error(f"Failed to create backup directory {backup_dir}: {e}")
+            return False
+
+    try:
+        shutil.copy2(file_path, backup_path)
+        logger.info(f"Backed up: {filename} -> {backup_filename}")
+        return True
+    except (shutil.Error, OSError) as e:
+        logger.error(f"Failed to backup {file_path}: {e}")
+        return False
+
+
+def check_packages_installed(packages):
+    """
+    Checks if RPM packages are already installed on the system.
+
+    Args:
+        packages: List of package names to check
+
+    Returns:
+        Tuple of (all_installed, missing_packages)
+        all_installed: True if all packages are installed
+        missing_packages: List of packages that are not installed
+    """
+    missing = []
+
+    for package in packages:
+        try:
+            result = subprocess.run(
+                ["rpm", "-q", package],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            if result.returncode != 0:
+                missing.append(package)
+        except subprocess.SubprocessError:
+            missing.append(package)
+
+    return (len(missing) == 0, missing)
+
+
 def install_bind_packages(packages):
     """
     Installs BIND DNS packages using dnf package manager.
+    Checks if packages are already installed and skips if so.
 
     Args:
         packages: List of package names to install
 
     Returns:
-        True if installation succeeded, False otherwise
+        True if installation succeeded or packages already installed, False otherwise
     """
-    logger.info("Installing BIND DNS packages...")
-    command = ["dnf", "install", "-y"] + packages
-    return run_command(command, f"Installing packages: {', '.join(packages)}")
+    logger.info("Checking BIND DNS packages...")
+
+    # Check which packages are already installed
+    all_installed, missing = check_packages_installed(packages)
+
+    if all_installed:
+        logger.info("All BIND packages already installed, skipping installation")
+        return True
+
+    # Install only the missing packages
+    logger.info(f"Installing missing packages: {', '.join(missing)}")
+    command = ["dnf", "install", "-y"] + missing
+    return run_command(command, f"Installing packages: {', '.join(missing)}")
 
 
 def create_directories(base_path, directories):
@@ -109,13 +191,15 @@ def create_log_directory(log_path):
         return False
 
 
-def copy_named_files(source_dir, dest_dir):
+def copy_named_files(source_dir, dest_dir, backup_dir):
     """
     Copies named.* zone hint files from source to destination directory.
+    Backs up existing files before overwriting.
 
     Args:
         source_dir: Source directory containing named.* files (e.g., /var/named/)
         dest_dir: Destination directory in chroot (e.g., /var/named/chroot/var/named/)
+        backup_dir: Directory to store backups of existing files
 
     Returns:
         True if files copied successfully, False otherwise
@@ -145,6 +229,13 @@ def copy_named_files(source_dir, dest_dir):
         filename = os.path.basename(src_file)
         dest_file = os.path.join(dest_dir, filename)
 
+        # Backup existing file before overwriting
+        if os.path.exists(dest_file):
+            if not backup_file(dest_file, backup_dir):
+                logger.error(f"Failed to backup {dest_file}, skipping copy")
+                success = False
+                continue
+
         try:
             shutil.copy2(src_file, dest_file)
             logger.info(f"Copied: {filename}")
@@ -155,14 +246,16 @@ def copy_named_files(source_dir, dest_dir):
     return success
 
 
-def copy_config_files(source_dir, dest_dir, primary_ip=None):
+def copy_config_files(source_dir, dest_dir, backup_dir, primary_ip=None):
     """
     Copies BIND configuration files from source to destination.
+    Backs up existing files before overwriting.
     For primary installs, replaces $ip placeholder with actual IP in named.conf.acl.
 
     Args:
         source_dir: Source directory containing config files
         dest_dir: Destination directory for config files
+        backup_dir: Directory to store backups of existing files
         primary_ip: IP address to substitute in named.conf.acl (primary installs only)
 
     Returns:
@@ -200,6 +293,13 @@ def copy_config_files(source_dir, dest_dir, primary_ip=None):
         for filename in files:
             src_file = os.path.join(root, filename)
             dest_file = os.path.join(current_dest, filename)
+
+            # Backup existing file before overwriting
+            if os.path.exists(dest_file):
+                if not backup_file(dest_file, backup_dir):
+                    logger.error(f"Failed to backup {dest_file}, skipping copy")
+                    success = False
+                    continue
 
             try:
                 shutil.copy2(src_file, dest_file)
@@ -428,17 +528,20 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
         logger.error(f"Failed to create dynamic directory: {e}")
         return False
 
-    # Step 5: Copy named.* zone hint files to chroot
-    if not copy_named_files(source_named_files, dest_named_files):
+    # Define backup directory for existing files
+    backup_dir = os.path.join(chroot_etc, "backups")
+
+    # Step 5: Copy named.* zone hint files to chroot (backs up existing files first)
+    if not copy_named_files(source_named_files, dest_named_files, backup_dir):
         logger.error("Failed to copy named.* files")
         return False
 
-    # Step 6: Copy configuration files based on primary or secondary
+    # Step 6: Copy configuration files based on primary or secondary (backs up existing files first)
     if primary_ip:
         # Primary install: copy from netbox-primary and update ACL with IP
         source_dir = os.path.join(configs_path, primary_config_dir)
         logger.info(f"Installing as PRIMARY DNS server with IP: {primary_ip}")
-        if not copy_config_files(source_dir, chroot_etc, primary_ip=primary_ip):
+        if not copy_config_files(source_dir, chroot_etc, backup_dir, primary_ip=primary_ip):
             logger.error("Failed to copy primary configuration files")
             return False
     else:
@@ -449,7 +552,7 @@ def install_dns(configs_path, primary_config_dir, bind_packages, chroot_etc,
             logger.error(f"Configuration directory not found for IP: {secondary_ip}")
             logger.error(f"Expected path: {source_dir}")
             return False
-        if not copy_config_files(source_dir, chroot_etc):
+        if not copy_config_files(source_dir, chroot_etc, backup_dir):
             logger.error("Failed to copy secondary configuration files")
             return False
 
