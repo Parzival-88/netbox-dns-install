@@ -140,6 +140,7 @@ BIND_ETC_DIRECTORIES = [
 # All directories that need permissions, ownership, and SGID set
 BIND_MANAGED_DIRECTORIES = [
     "/var/named/chroot/etc",
+    "/var/named/chroot/etc/zones",
     "/var/named/chroot/etc/zones/forward",
     "/var/named/chroot/etc/zones/reverse",
     "/var/named/chroot/etc/archived",
