@@ -59,8 +59,8 @@ BIND_CONFIGS_PATH = os.path.join(INSTALLER_BASE_PATH, "bind-environment-configs"
 # NetBox Directory Paths
 # =============================================================================
 
-# Base path to the NetBox installation
-NETBOX_PATH = "/opt/netbox/current"
+# Base path to the NetBox application directory
+NETBOX_PATH = "/opt/netbox/current/netbox"
 
 # Path to the Python executable in the virtual environment
 PYTHON_PATH = "/opt/netbox/current/venv-py3/bin/python"
@@ -151,8 +151,8 @@ BIND_MANAGED_DIRECTORIES = [
     "/var/named/chroot/etc/third-party-dns",
 ]
 
-# Directory permissions mode
-BIND_DIR_MODE = 0o755
+# Directory permissions mode (775 allows group write for netbox user)
+BIND_DIR_MODE = 0o775
 
 # Primary BIND config source directory name
 BIND_PRIMARY_CONFIG_DIR = "netbox-primary"
@@ -200,6 +200,13 @@ IPDNS_DEFAULT_NAMESERVERS = [
 
 # Tenant group prefix for IPDNS
 IPDNS_TENANT_GROUP_PREFIX = "sgn-tenant"
+
+# DNS service name for systemctl commands
+IPDNS_DNS_SERVICE = "named-chroot"
+
+# File ownership for DNS zone files
+IPDNS_FILE_USER = "netbox"
+IPDNS_FILE_GROUP = "named"
 
 # Shared directory for netbox-ipdns plugin
 IPDNS_SHARED_DIR = "/opt/netbox/shared/netbox-ipdns"
@@ -264,8 +271,8 @@ OCTODNS_CONFIG_FILE = "/opt/octodns/config/config.yaml"
 OCTODNS_DIR_MODE = 0o755
 
 # User and group for OctoDNS directory ownership
-OCTODNS_USER = "root"
-OCTODNS_GROUP = "named"
+OCTODNS_USER = "netbox"
+OCTODNS_GROUP = "netbox"
 
 # OctoDNS config.yaml template with placeholders for environment variables
 OCTODNS_CONFIG_TEMPLATE = """---

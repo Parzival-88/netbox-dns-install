@@ -703,6 +703,27 @@ def configure_global_variables(plugins_path, ipdns_config):
             content
         )
 
+        # Replace DNS_SERVICE value
+        content = re.sub(
+            r'DNS_SERVICE\s*=\s*["\'][^"\']*["\']',
+            f'DNS_SERVICE = \'{ipdns_config["dns_service"]}\'',
+            content
+        )
+
+        # Replace FILE_USER value
+        content = re.sub(
+            r'FILE_USER\s*=\s*["\'][^"\']*["\']',
+            f'FILE_USER = \'{ipdns_config["file_user"]}\'',
+            content
+        )
+
+        # Replace FILE_GROUP value
+        content = re.sub(
+            r'FILE_GROUP\s*=\s*["\'][^"\']*["\']',
+            f'FILE_GROUP = \'{ipdns_config["file_group"]}\'',
+            content
+        )
+
         # Build protected zones list string
         protected_zones_str = ",\n        ".join(
             [f'"{zone}"' for zone in ipdns_config["protected_zones"]]

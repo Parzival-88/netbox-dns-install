@@ -245,6 +245,9 @@ def run_ipdns_install(logger):
         "protected_zones": config.IPDNS_PROTECTED_ZONES,
         "default_nameservers": config.IPDNS_DEFAULT_NAMESERVERS,
         "tenant_group_prefix": config.IPDNS_TENANT_GROUP_PREFIX,
+        "dns_service": config.IPDNS_DNS_SERVICE,
+        "file_user": config.IPDNS_FILE_USER,
+        "file_group": config.IPDNS_FILE_GROUP,
     }
 
     return ipdns_install.install_ipdns(
